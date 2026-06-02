@@ -1,0 +1,16 @@
+"use client";
+
+import { useState } from "react";
+import { Bell, CreditCard, Key, Plug, User, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+const sections=[{id:"profile",label:"Workspace",icon:User},{id:"team",label:"Team",icon:Users},{id:"billing",label:"Billing",icon:CreditCard},{id:"integrations",label:"Integrations",icon:Plug},{id:"api",label:"API keys",icon:Key},{id:"notif",label:"Notifications",icon:Bell}];
+export default function Settings(){const[tab,setTab]=useState("profile");return <div className="space-y-6"><div><h1 className="font-display text-3xl font-bold tracking-tight">Settings</h1><p className="text-sm text-muted-foreground">Workspace preferences, team and integrations.</p></div><div className="grid gap-6 lg:grid-cols-[220px_1fr]"><aside className="glass rounded-2xl p-2 h-fit">{sections.map(section=><button key={section.id} onClick={()=>setTab(section.id)} className={`flex items-center gap-3 w-full rounded-xl px-3 py-2 text-sm transition ${tab===section.id?"bg-secondary text-foreground":"text-muted-foreground hover:bg-secondary/60"}`}><section.icon className="h-4 w-4"/>{section.label}</button>)}</aside><div className="glass rounded-2xl p-6 space-y-6">
+{tab==="profile"?<><Field label="Workspace name" value="Creator OS"/><Field label="Default timezone" value={Intl.DateTimeFormat().resolvedOptions().timeZone}/><Field label="Brand voice" value="Configure your brand voice for AI-assisted drafts." textarea/><Button className="bg-gradient-primary text-primary-foreground shadow-glow">Save changes</Button></>:null}
+{tab==="team"?<Empty title="Team members" text="Team membership is managed by workspace RBAC. Invite controls will appear when workspace administration is enabled."/>:null}
+{tab==="billing"?<Empty title="Billing" text="Billing is not enabled in this deployment."/>:null}
+{tab==="integrations"?<Empty title="Integrations" text="Social OAuth connections are managed from Channels. Webhook integrations are not enabled yet."/>:null}
+{tab==="api"?<Empty title="API keys" text="Public API access is not enabled. Server credentials remain private."/>:null}
+{tab==="notif"?<div className="space-y-3">{["Post published successfully","Post failed to publish","Weekly analytics digest","Team mentions"].map(name=><label key={name} className="flex items-center justify-between rounded-xl border border-border bg-secondary/30 p-3 cursor-pointer"><span className="text-sm">{name}</span><input type="checkbox" defaultChecked className="accent-primary h-4 w-4"/></label>)}</div>:null}
+</div></div></div>;}
+function Empty({title,text}:{title:string;text:string}){return <div><div className="font-display text-lg font-semibold">{title}</div><p className="mt-2 text-sm text-muted-foreground">{text}</p></div>;}
+function Field({label,value,textarea}:{label:string;value:string;textarea?:boolean}){return <div><label className="text-xs font-semibold text-muted-foreground">{label}</label>{textarea?<textarea defaultValue={value} rows={3} className="mt-1.5 w-full rounded-xl border border-border bg-secondary/60 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/50"/>:<input defaultValue={value} className="mt-1.5 w-full rounded-xl border border-border bg-secondary/60 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/50"/>}</div>;}

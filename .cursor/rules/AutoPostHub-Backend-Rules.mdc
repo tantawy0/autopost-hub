@@ -1,0 +1,53 @@
+---
+alwaysApply: true
+---
+
+Always read:
+- PROJECT_STATUS.md
+- BACKEND_ARCHITECTURE.md
+
+before implementation.
+
+Core Rules:
+- no mock data
+- no business logic inside API routes
+- service-layer architecture only
+- worker-first async systems
+- preserve Silent Mode UI
+- no uncontrolled refactors
+- no deleting working systems
+- implement one backend slice only
+- preserve backward compatibility
+- use structured errors
+- use audit logs for publish actions
+- use idempotent job execution
+- keep API routes thin
+- prefer additive migrations
+- preserve existing UI behavior
+
+Implementation Rules:
+- run npm run lint after changes
+- run npm run build -- --webpack after changes
+- final response only
+- no progress commentary
+- no giant rewrites
+- no unrelated file edits
+
+Architecture Rules:
+- routes are orchestration only
+- business logic belongs in lib/server/*
+- providers belong in lib/providers/*
+- queues/workers own retries
+- services own validation and lifecycle logic
+- UI must not directly own backend logic
+
+Product Direction:
+Build:
+- AI Social Growth Operating System
+- creator-first SaaS
+- viral intelligence platform
+
+Do NOT build:
+- generic scheduler clone
+- enterprise dashboard clone
+- mock/demo systems
