@@ -51,6 +51,21 @@ For Vercel Pro or Enterprise, add this optional `vercel.json`. The app includes 
 
 Do not add the per-minute config on Vercel Hobby: Hobby allows cron jobs only once per day and the deployment will fail. Use Railway Cron, GitHub Actions, Upstash QStash, another external scheduler, or upgrade to Vercel Pro. The `POST` endpoints remain available for external schedulers that send request bodies.
 
+## Supabase Cron For Vercel Hobby
+
+Migration `20260602190854_production_cron_bridge.sql` enables `pg_cron`, `pg_net`, and Vault. It adds a service-role-only `configure_autopost_cron` RPC that stores the production origin and bearer secret in Vault, then schedules the safe Vercel-compatible `GET` bridges every minute.
+
+Configure it once after deployment from a trusted server-side environment:
+
+```ts
+await supabase.rpc("configure_autopost_cron", {
+  target_app_url: process.env.NEXT_PUBLIC_APP_URL,
+  target_cron_secret: process.env.CRON_SECRET,
+});
+```
+
+The secret remains encrypted in Supabase Vault and is never stored in a migration. Monitor executions in Supabase Dashboard under `Integrations -> Cron`.
+
 ## Railway / External Scheduler Example
 
 ```bash
