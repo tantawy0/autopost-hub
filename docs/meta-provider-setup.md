@@ -8,14 +8,17 @@ Business accounts for this release. TikTok remains a visible placeholder.
 1. Create or open a Meta app with Facebook Login enabled.
 2. In **Facebook Login > Settings**, turn on **Client OAuth Login** and
    **Web OAuth Login**.
-3. Add this exact OAuth redirect URI to **Valid OAuth Redirect URIs**:
+3. Add the exact environment-specific OAuth redirect URI to **Valid OAuth Redirect URIs**:
 
    ```text
    http://localhost:3003/api/meta/callback
+   https://autopost-hub.vercel.app/api/meta/callback
    ```
 
-4. In the app's Basic settings, keep `localhost` in App Domains for local testing
-   and use `http://localhost:3003/` as the local website URL if Meta asks for it.
+4. In the app's Basic settings, add `autopost-hub.vercel.app` to App Domains and
+   use `https://autopost-hub.vercel.app/privacy`,
+   `https://autopost-hub.vercel.app/terms`, and
+   `https://autopost-hub.vercel.app/data-deletion` for the public policy links.
 5. Configure the app with test users that own or manage eligible Facebook Pages.
 6. Confirm the test Pages are linked to Instagram Business accounts when testing
    Instagram publishing.
