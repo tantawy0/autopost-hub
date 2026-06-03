@@ -21,19 +21,40 @@ export default function AuthPage() {
   const [socialLoading, setSocialLoading] = useState<"google" | "github" | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const errorDescription = params.get("error_description") ?? params.get("error");
+    let active = true;
 
-    if (errorDescription) {
-      toast.error(errorDescription);
-    }
+    const finishAuth = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const errorDescription = params.get("error_description") ?? params.get("error");
+      const code = params.get("code");
 
-    void supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
+      if (errorDescription) {
+        toast.error(errorDescription);
+        window.history.replaceState(null, "", "/auth");
+        return;
+      }
+
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          toast.error(error.message);
+          window.history.replaceState(null, "", "/auth");
+          return;
+        }
+      }
+
+      const { data } = await supabase.auth.getSession();
+      if (active && data.session) {
         router.push("/dashboard");
         router.refresh();
       }
-    });
+    };
+
+    void finishAuth();
+
+    return () => {
+      active = false;
+    };
   }, [router]);
 
   const submit = async () => {
