@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, type ComponentType } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -18,6 +18,23 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<"google" | "github" | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const errorDescription = params.get("error_description") ?? params.get("error");
+
+    if (errorDescription) {
+      toast.error(errorDescription);
+    }
+
+    void supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        router.push("/dashboard");
+        router.refresh();
+      }
+    });
+  }, [router]);
 
   const submit = async () => {
     if (!email || !password) {
@@ -48,6 +65,27 @@ export default function AuthPage() {
     }
   };
 
+  const signInWithProvider = async (provider: "google" | "github") => {
+    setSocialLoading(provider);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+          queryParams:
+            provider === "google"
+              ? { access_type: "offline", prompt: "consent" }
+              : undefined,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Social sign-in failed");
+      setSocialLoading(null);
+    }
+  };
+
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background text-foreground">
       <div className="relative flex flex-col px-6 py-8 lg:px-14">
@@ -63,11 +101,11 @@ export default function AuthPage() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <button type="button" onClick={() => toast.message("Google login is not enabled yet")} className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-secondary/50 px-4 py-2.5 text-sm font-medium hover:bg-secondary transition">
-              <GoogleIcon /> Continue with Google
+            <button type="button" disabled={Boolean(socialLoading)} onClick={() => void signInWithProvider("google")} className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-secondary/50 px-4 py-2.5 text-sm font-medium hover:bg-secondary transition disabled:cursor-not-allowed disabled:opacity-60">
+              <GoogleIcon /> {socialLoading === "google" ? "Connecting..." : "Continue with Google"}
             </button>
-            <button type="button" onClick={() => toast.message("GitHub login is not enabled yet")} className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-secondary/50 px-4 py-2.5 text-sm font-medium hover:bg-secondary transition">
-              <Github className="h-4 w-4" /> Continue with GitHub
+            <button type="button" disabled={Boolean(socialLoading)} onClick={() => void signInWithProvider("github")} className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-secondary/50 px-4 py-2.5 text-sm font-medium hover:bg-secondary transition disabled:cursor-not-allowed disabled:opacity-60">
+              <Github className="h-4 w-4" /> {socialLoading === "github" ? "Connecting..." : "Continue with GitHub"}
             </button>
           </div>
 

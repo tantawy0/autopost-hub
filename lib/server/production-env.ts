@@ -117,6 +117,36 @@ const ENV_CHECKS: Array<Omit<EnvCheck, "configured">> = [
     purpose: "21st SDK token routes and deployed agent integration.",
   },
   {
+    key: "STRIPE_SECRET_KEY",
+    severity: "recommended",
+    scope: "server",
+    purpose: "Stripe Checkout, billing portal, and subscription lookup.",
+  },
+  {
+    key: "STRIPE_WEBHOOK_SECRET",
+    severity: "recommended",
+    scope: "server",
+    purpose: "Stripe webhook signature verification for subscription lifecycle updates.",
+  },
+  {
+    key: "STRIPE_PRICE_CREATOR",
+    severity: "recommended",
+    scope: "server",
+    purpose: "Stripe recurring Price ID for the Creator plan.",
+  },
+  {
+    key: "STRIPE_PRICE_PRO",
+    severity: "recommended",
+    scope: "server",
+    purpose: "Stripe recurring Price ID for the Pro plan.",
+  },
+  {
+    key: "STRIPE_PRICE_AGENCY",
+    severity: "recommended",
+    scope: "server",
+    purpose: "Stripe recurring Price ID for the Agency plan.",
+  },
+  {
     key: "META_GRAPH_VERSION",
     severity: "optional",
     scope: "server",
@@ -248,6 +278,8 @@ export function validateProductionEnv(source: EnvSource = process.env) {
     ["TOKEN_ENCRYPTION_KEY", 32],
     ["SUPABASE_SERVICE_ROLE_KEY", 32],
     ["META_APP_SECRET", 16],
+    ["STRIPE_SECRET_KEY", 16],
+    ["STRIPE_WEBHOOK_SECRET", 16],
   ] as const) {
     const value = getValue(source, key);
     if (value && !isPlaceholder(value) && value.length < minimumLength) {
@@ -289,6 +321,18 @@ export function validateProductionEnv(source: EnvSource = process.env) {
   }
   if (provider === "gemini" && !checkByKey.get("GEMINI_API_KEY")?.configured) {
     addIssue("GEMINI_API_KEY", "provider_key_missing");
+  }
+
+  const stripeConfigured = checkByKey.get("STRIPE_SECRET_KEY")?.configured;
+  if (stripeConfigured) {
+    for (const key of [
+      "STRIPE_WEBHOOK_SECRET",
+      "STRIPE_PRICE_CREATOR",
+      "STRIPE_PRICE_PRO",
+      "STRIPE_PRICE_AGENCY",
+    ]) {
+      if (!checkByKey.get(key)?.configured) addIssue(key, "provider_key_missing");
+    }
   }
 
   const invalidRequired = issues.filter((issue) => issue.severity === "required");

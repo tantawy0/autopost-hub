@@ -36,6 +36,11 @@ Runtime validation lives in `lib/server/production-env.ts`.
 | `LINKEDIN_CLIENT_ID` | Server | LinkedIn OAuth | Recommended when enabling LinkedIn channel connection. |
 | `LINKEDIN_CLIENT_SECRET` | Server | LinkedIn OAuth | Server-only. Used for token exchange and OAuth state signing. |
 | `LINKEDIN_REDIRECT_URI` | Server | LinkedIn OAuth callback | Must exactly match the LinkedIn Developer Portal redirect URL. |
+| `STRIPE_SECRET_KEY` | Server | Paid plans and Stripe Checkout | Required only when enabling paid plans. |
+| `STRIPE_WEBHOOK_SECRET` | Server | Stripe subscription lifecycle webhooks | Required only when enabling paid plans. |
+| `STRIPE_PRICE_CREATOR` | Server | Creator monthly plan checkout | Stripe recurring Price ID, not a product ID. |
+| `STRIPE_PRICE_PRO` | Server | Pro monthly plan checkout | Stripe recurring Price ID, not a product ID. |
+| `STRIPE_PRICE_AGENCY` | Server | Agency monthly plan checkout | Stripe recurring Price ID, not a product ID. |
 
 ## Optional Overrides
 
@@ -101,3 +106,48 @@ LINKEDIN_API_VERSION=202605
 ```
 
 The current provider foundation supports OAuth member connection and text-only member posts. LinkedIn organization/page publishing and media publishing require the additional LinkedIn product permissions and asset upload flow.
+
+## Supabase Social Login
+
+Google and GitHub login are enabled in the frontend through Supabase OAuth. Configure provider credentials in the Supabase dashboard, not in public client code.
+
+Provider callback URL:
+
+```text
+https://<your-supabase-project>.supabase.co/auth/v1/callback
+```
+
+Allowed redirect URLs should include:
+
+```text
+https://autopost-hub.vercel.app/auth
+http://localhost:3000/auth
+http://localhost:3003/auth
+```
+
+## Stripe Billing
+
+Paid plans are optional until Stripe is configured. Without Stripe keys, the app keeps Free plan behavior and the billing API returns `stripe_not_configured` instead of failing the app.
+
+```bash
+STRIPE_SECRET_KEY=replace-with-stripe-secret-key
+STRIPE_WEBHOOK_SECRET=replace-with-stripe-webhook-secret
+STRIPE_PRICE_CREATOR=price_creator_monthly
+STRIPE_PRICE_PRO=price_pro_monthly
+STRIPE_PRICE_AGENCY=price_agency_monthly
+```
+
+Webhook endpoint:
+
+```text
+https://autopost-hub.vercel.app/api/stripe/webhook
+```
+
+Required webhook events:
+
+```text
+checkout.session.completed
+customer.subscription.created
+customer.subscription.updated
+customer.subscription.deleted
+```

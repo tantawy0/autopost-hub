@@ -44,7 +44,7 @@ const Landing = () => {
             <AnimatedThemeToggler />
             <Link href="/auth" className="hidden md:inline-flex text-sm text-muted-foreground hover:text-foreground transition px-3">Sign in</Link>
             <Button asChild className="bg-gradient-primary text-primary-foreground shadow-glow">
-              <Link href="/dashboard">Start free <ArrowRight className="ml-1 h-4 w-4" /></Link>
+              <Link href="/auth">Start free <ArrowRight className="ml-1 h-4 w-4" /></Link>
             </Button>
           </div>
         </div>
@@ -82,7 +82,7 @@ const Landing = () => {
             </p>
 
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <NeonButton onClick={() => (window.location.href = "/dashboard")}>
+              <NeonButton onClick={() => (window.location.href = "/auth")}>
                 <Sparkles className="h-4 w-4" /> Start scheduling
               </NeonButton>
               <Button asChild size="lg" variant="outline" className="border-border bg-secondary/40 hover:bg-secondary">
@@ -296,10 +296,10 @@ const Landing = () => {
 
         <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4 max-w-7xl mx-auto">
           {[
-            { name: "Creator", price: 12, desc: "For solo creators getting started.", feats: ["3 channels", "100 scheduled posts", "AI captions", "Basic analytics"], cta: "Start free" },
-            { name: "Pro", price: 29, desc: "Best for serious creators & brands.", feats: ["10 channels", "Unlimited posts", "Advanced analytics", "AI assistant Pro", "Team of 3"], cta: "Try Pro", featured: true },
-            { name: "Agency", price: 79, desc: "For teams managing many clients.", feats: ["Unlimited channels", "Approvals & roles", "White-label reports", "Team of 15", "Priority support"], cta: "Try Agency" },
-            { name: "Enterprise", price: null, desc: "Custom plans for large orgs.", feats: ["SSO / SAML", "Custom integrations", "SLA & DPA", "Dedicated CSM"], cta: "Talk to sales" },
+              { name: "Free", price: 0, desc: "For testing your first real workspace.", feats: ["1 channel", "25 scheduled posts/mo", "Heuristic AI", "Basic analytics"], cta: "Start free" },
+              { name: "Creator", price: 12, desc: "For solo creators getting consistent.", feats: ["3 channels", "100 scheduled posts/mo", "AI captions", "30-day analytics"], cta: "Upgrade Creator" },
+              { name: "Pro", price: 29, desc: "Best for serious creators & brands.", feats: ["10 channels", "Unlimited posts", "Advanced analytics", "AI assistant Pro", "Team of 3"], cta: "Try Pro", featured: true },
+              { name: "Agency", price: 79, desc: "For teams managing many clients.", feats: ["Unlimited channels", "Approvals & roles", "Client workflows", "Team of 15"], cta: "Try Agency" },
           ].map((p) => (
             <motion.div
               key={p.name}
@@ -323,7 +323,7 @@ const Landing = () => {
                 ))}
               </ul>
               <Button asChild className={`mt-6 w-full ${p.featured ? "bg-gradient-primary text-primary-foreground shadow-glow" : "bg-secondary hover:bg-secondary/80"}`}>
-                <Link href="/dashboard">{p.cta}</Link>
+                <Link href="/auth">{p.cta}</Link>
               </Button>
             </motion.div>
           ))}
@@ -357,8 +357,8 @@ const Landing = () => {
           <h3 className="relative font-display text-3xl md:text-5xl font-bold">Ship every post with confidence.</h3>
           <p className="relative mx-auto mt-3 max-w-xl text-muted-foreground">Start your free trial - connect your first channel in under a minute.</p>
           <div className="relative mt-7 flex justify-center">
-            <NeonButton onClick={() => (window.location.href = "/dashboard")}>
-              Open Auto Post Hub <ArrowRight className="h-4 w-4" />
+            <NeonButton onClick={() => (window.location.href = "/auth")}>
+              Start free <ArrowRight className="h-4 w-4" />
             </NeonButton>
           </div>
         </div>

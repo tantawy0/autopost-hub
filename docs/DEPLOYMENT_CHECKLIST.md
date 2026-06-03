@@ -17,6 +17,9 @@ Last audited: 2026-06-02
 - [ ] Set `NEXT_PUBLIC_SUPABASE_URL`.
 - [ ] Set `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 - [ ] Set `SUPABASE_SERVICE_ROLE_KEY` server-side only.
+- [ ] Enable Google provider if using social login.
+- [ ] Enable GitHub provider if using social login.
+- [ ] Add `/auth` production and local redirect URLs.
 - [ ] Apply all migrations in `supabase/migrations`.
 - [ ] Confirm RLS is enabled on all user/workspace tables.
 - [ ] Confirm service-role usage is limited to route handlers/workers.
@@ -44,6 +47,18 @@ Last audited: 2026-06-02
 - [ ] Add valid external provider key for `my-agent` in the 21st dashboard/CLI.
 - [ ] Test `/api/ai/assistant` with authenticated user.
 - [ ] Test `/api/an-status` and 21st agent chat path.
+
+## Billing / Payments
+
+- [ ] Create Stripe products and recurring monthly Prices for Creator, Pro, and Agency.
+- [ ] Set `STRIPE_SECRET_KEY` server-side only.
+- [ ] Set `STRIPE_WEBHOOK_SECRET` server-side only.
+- [ ] Set `STRIPE_PRICE_CREATOR`, `STRIPE_PRICE_PRO`, and `STRIPE_PRICE_AGENCY`.
+- [ ] Configure Stripe webhook endpoint: `/api/stripe/webhook`.
+- [ ] Subscribe webhook to checkout/session and customer/subscription events.
+- [ ] Test Free plan signup.
+- [ ] Test paid checkout in Stripe test mode.
+- [ ] Test Billing Portal return to `/settings`.
 
 ## Cron / Workers
 

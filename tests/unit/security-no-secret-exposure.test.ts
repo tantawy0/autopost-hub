@@ -43,8 +43,8 @@ describe("client routes do not expose secrets", () => {
     const files = clientRoots.flatMap((root) => collectSourceFiles(path.join(repoRoot, root)));
     const findings: string[] = [];
     const privateEnvAccess =
-      /process\.env\.(?:SUPABASE_SERVICE_ROLE_KEY|OPENROUTER_API_KEY|API_KEY_21ST|META_APP_SECRET|CRON_SECRET|TOKEN_ENCRYPTION_KEY|WORKER_SECRET)/g;
-    const secretLiteral = /\b(?:sk-(?:or-v1|proj|live)-|21st_sk_)[A-Za-z0-9_-]{20,}\b/g;
+      /process\.env\.(?:SUPABASE_SERVICE_ROLE_KEY|OPENROUTER_API_KEY|API_KEY_21ST|META_APP_SECRET|CRON_SECRET|TOKEN_ENCRYPTION_KEY|WORKER_SECRET|STRIPE_SECRET_KEY|STRIPE_WEBHOOK_SECRET)/g;
+    const secretLiteral = /\b(?:sk-(?:or-v1|proj|live|test)-|whsec_|21st_sk_)[A-Za-z0-9_-]{20,}\b/g;
 
     for (const file of files) {
       const source = fs.readFileSync(file, "utf8");
