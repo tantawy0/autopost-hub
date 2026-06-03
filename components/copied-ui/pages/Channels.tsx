@@ -34,12 +34,24 @@ export default function Channels() {
     finally { setLoading(false); }
   };
   useEffect(() => { queueMicrotask(() => void load()); }, []);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
+    if (!error) return;
+    toast.error(`Channel connection failed: ${error}`);
+    window.history.replaceState(null, "", "/channels");
+  }, []);
   const connect = async (platform: UiPlatform) => {
     if (platform === "tiktok") { toast.message("TikTok connection is coming soon"); return; }
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.access_token) { toast.error("Sign in again before connecting a channel"); return; }
     const endpoint = platform === "linkedin" ? "/api/linkedin/login?returnTo=/channels" : `/api/meta/login?platform=${platform}&returnTo=/channels`;
-    const response = await fetch(endpoint, { headers: { Authorization: `Bearer ${session.access_token}` } });
+    const response = await fetch(endpoint, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
     const body = await response.json().catch(() => null) as { url?: string; message?: string } | null;
     if (!response.ok || !body?.url) { toast.error(body?.message ?? "Unable to start authorization"); return; }
     window.location.assign(body.url);

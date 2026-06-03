@@ -23,6 +23,21 @@ function normalizeReturnTo(value: string | null): string {
   return value?.startsWith("/") ? value : "/channels";
 }
 
+function toLinkedInLoginError(error: unknown) {
+  if (
+    error instanceof Error &&
+    /LINKEDIN_CLIENT_(ID|SECRET) is not configured/i.test(error.message)
+  ) {
+    return {
+      status: 503,
+      message: "LinkedIn OAuth is not configured yet.",
+      code: "provider_config",
+    };
+  }
+
+  return toSafeError(error);
+}
+
 export async function GET(request: NextRequest) {
   const returnTo = normalizeReturnTo(request.nextUrl.searchParams.get("returnTo"));
   const wantsJson = request.headers.get("accept")?.includes("application/json");
@@ -50,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(authorizationUrl);
   } catch (error) {
-    const safe = toSafeError(error);
+    const safe = toLinkedInLoginError(error);
 
     if (wantsJson) {
       return NextResponse.json(safe, { status: safe.status });

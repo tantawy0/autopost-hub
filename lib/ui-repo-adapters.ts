@@ -71,7 +71,7 @@ export function toUiImportedPost(post: SocialPostDTO): UiPost {
 }
 
 export function toUiChannel(account: ConnectedAccountDTO): UiChannel {
-  const status = account.status === "Connected" ? "healthy" : account.reconnectRequired ? "error" : "warning";
+  const status = account.reconnectRequired ? "error" : account.status === "Connected" ? "healthy" : "warning";
   return {
     id: account.id,
     platform: toUiPlatform(account.platform),

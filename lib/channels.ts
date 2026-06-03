@@ -29,7 +29,10 @@ function toConnectedAccountDTO(row: ConnectedAccountRow): ConnectedAccountDTO {
       status === "Expired" ||
       status === "Revoked" ||
       status === "Unauthorized",
-    publishCapable: platform !== "TikTok" && status === "Connected",
+    publishCapable:
+      platform !== "TikTok" &&
+      status === "Connected" &&
+      !Boolean(row.reconnect_required),
   };
 }
 
