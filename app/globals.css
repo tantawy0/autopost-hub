@@ -437,10 +437,15 @@ body {
   height: 0.5rem;
   border-radius: 999px;
   background:
-    linear-gradient(90deg, rgb(189 229 173 / 0.16), rgb(189 229 173 / 0.95), rgb(132 199 255 / 0.28));
+    linear-gradient(
+      90deg,
+      hsl(214 80% 58% / 0.18),
+      hsl(214 80% 58% / 0.95),
+      hsl(195 70% 55% / 0.42)
+    );
   background-size: 220% 100%;
   animation: shimmer 1s ease-in-out infinite;
-  box-shadow: 0 0 18px rgb(189 229 173 / 0.16);
+  box-shadow: 0 0 18px hsl(214 80% 58% / 0.18);
 }
 
 .pulse-dot {
