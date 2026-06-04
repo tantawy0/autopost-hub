@@ -10,6 +10,7 @@
     "setup:e2e": "node scripts/setup-e2e-user.mjs",
     "smoke:auth": "node scripts/auth-provider-smoke.mjs",
     "smoke:cron": "node scripts/cron-production-smoke.mjs",
+    "smoke:meta-app-review": "node scripts/meta-app-review-readiness.mjs",
     "test": "node --conditions=react-server --import tsx --test \"tests/unit/**/*.test.ts\"",
     "test:e2e": "playwright test"
   },
