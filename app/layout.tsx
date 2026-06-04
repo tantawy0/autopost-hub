@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import "@21st-sdk/react/styles.css";
 import "./globals.css";
 import ToastProvider from "@/components/ui/ToastProvider";
 import { SilentMotionProvider } from "@/components/ui/SilentMotion";

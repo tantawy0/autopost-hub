@@ -15,6 +15,7 @@ import {
   isPermissionAllowed,
 } from "@/lib/server/authorization";
 import { writeAuditLog } from "@/lib/server/audit";
+import { assertDiscoveredChannelCapacity } from "@/lib/server/billing/limits";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { ensureDefaultWorkspace } from "@/lib/workspaces";
 
@@ -82,6 +83,12 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.redirect(`${appUrl}/channels?error=forbidden`);
     }
+
+    await assertDiscoveredChannelCapacity(client, {
+      workspaceId: workspace.workspaceId!,
+      destinations,
+    });
+
     const rows = destinations.map((destination) => ({
       user_id: payload.userId,
       workspace_id: workspace.workspaceId,
@@ -120,7 +127,12 @@ export async function GET(request: NextRequest) {
       code: error instanceof MetaProviderError ? error.code : "callback",
     });
 
-    const code = error instanceof MetaProviderError ? error.code : "callback";
+    const code =
+      error instanceof MetaProviderError
+        ? error.code
+        : error instanceof Error && error.name === "PlanLimitError"
+          ? "plan_limit_exceeded"
+          : "callback";
     return NextResponse.redirect(`${appUrl}/channels?error=${safeMetaErrorCode(code)}`);
   }
 }

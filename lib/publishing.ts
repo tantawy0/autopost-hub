@@ -506,7 +506,9 @@ export async function processDuePosts(
     (post) => !isTerminalPostStatus(normalizePostStatus(post.status)),
   );
 
-  await enqueueDuePosts(client, nonTerminal);
+  if (!dryRun) {
+    await enqueueDuePosts(client, nonTerminal);
+  }
 
   const workerResult = await runWorker(client, {
     jobTypes: ["publish_post"],

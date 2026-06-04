@@ -266,6 +266,7 @@ export function safeMetaErrorCode(value: string | null): string {
     "meta_permissions",
     "provider_config",
     "callback",
+    "plan_limit_exceeded",
   ]);
 
   if (value && allowed.has(value)) {

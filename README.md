@@ -61,12 +61,17 @@ npm run test:e2e
 ```
 
 By default, Playwright specs are environment-gated so local runs do not require
-browser binaries or live provider credentials. For full browser/API coverage,
-install Playwright browsers and run with:
+browser binaries or live provider credentials. For local full browser/API
+coverage, generate a safe Supabase-backed E2E user and run:
 
 ```bash
-E2E_START_SERVER=1 E2E_RUN_BROWSER=1 E2E_EMAIL=... E2E_PASSWORD=... npm run test:e2e
+npm run setup:e2e
+npm run test:e2e
 ```
+
+`setup:e2e` writes only E2E credentials to `.env.local`, which must stay ignored
+by git. Provider-success publishing tests still require safe Meta/TikTok sandbox
+accounts and explicit provider credentials.
 
 Changes that touch routing, rendering, metadata, or Next.js config must consult
 the relevant guide under `node_modules/next/dist/docs/` first. Changes that touch

@@ -7,8 +7,8 @@ test.describe("post actions", () => {
 
   test("keeps destructive actions behind confirmation UI", async ({ page }) => {
     await signIn(page);
-    await page.goto("/drafts");
-    await expect(page.getByRole("heading", { name: "Drafts" })).toBeVisible();
+    await page.goto("/queue");
+    await expect(page.getByRole("heading", { name: "Queue" })).toBeVisible();
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 });

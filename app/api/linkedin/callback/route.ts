@@ -16,6 +16,7 @@ import {
   isPermissionAllowed,
 } from "@/lib/server/authorization";
 import { writeAuditLog } from "@/lib/server/audit";
+import { assertDiscoveredChannelCapacity } from "@/lib/server/billing/limits";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 import { ensureDefaultWorkspace } from "@/lib/workspaces";
 
@@ -70,6 +71,11 @@ export async function GET(request: NextRequest) {
     }
 
     const authorUrn = toLinkedInAuthorUrn(profile.sub);
+    await assertDiscoveredChannelCapacity(client, {
+      workspaceId: workspace.workspaceId!,
+      destinations: [{ platform: "LinkedIn", accountId: authorUrn }],
+    });
+
     const { error } = await client.from("connected_accounts").upsert(
       [
         {

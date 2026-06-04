@@ -163,7 +163,6 @@ export default function PostComposerForm({ postId }: PostComposerFormProps) {
     const timeout = window.setTimeout(() => {
       setAutosaveState("saving");
       const payload = { caption, firstComment, scheduleTime, internalNotes, postFormat, updatedAt: new Date().toISOString() };
-      window.localStorage.setItem("autopost:composer-draft", JSON.stringify(payload));
 
       queueMicrotask(async () => {
         try {

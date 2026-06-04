@@ -13,6 +13,7 @@ export async function signIn(page: Page) {
   await page.getByLabel("Password").fill(process.env.E2E_PASSWORD);
   await page.getByRole("button", { name: /continue to workspace/i }).click();
   await page.waitForURL("/dashboard");
+  await expect(page.getByRole("navigation", { name: "Primary" })).toBeVisible({ timeout: 15_000 });
 }
 
 export async function expectAuthenticatedAppShell(page: Page) {

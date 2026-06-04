@@ -7,6 +7,7 @@ import {
   requireAuthenticatedUser,
   requireWorkspacePermission,
 } from "@/lib/server/authorization";
+import { assertPlanCapacity } from "@/lib/server/billing/limits";
 import { assertRateLimit, getRateLimitKey } from "@/lib/server/rate-limit";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
   try {
     const client = createServerSupabaseClient();
     const user = await requireAuthenticatedUser(client, request);
-    await requireWorkspacePermission(client, user, "ai", {
+    const workspace = await requireWorkspacePermission(client, user, "ai", {
       action: "ai.content_score",
       entityType: "content_score",
       request,
@@ -33,6 +34,13 @@ export async function POST(request: NextRequest) {
 
     if (!body.caption?.trim()) {
       return NextResponse.json({ message: "Caption is required.", code: "caption_required" }, { status: 400 });
+    }
+
+    if (workspace.workspaceId) {
+      await assertPlanCapacity(client, {
+        workspaceId: workspace.workspaceId,
+        metric: "aiRequestsMonthly",
+      });
     }
 
     const score = await scoreAndPersistContent(client, user, {

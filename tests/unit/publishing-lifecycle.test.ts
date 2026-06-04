@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { publishPost } from "../../lib/publishing";
+import { processDuePosts, publishPost } from "../../lib/publishing";
 import {
   isTerminalPostStatus,
   normalizePlatform,
@@ -102,5 +102,30 @@ describe("publish lifecycle status transitions", () => {
   test("normalizes LinkedIn platform labels for provider routing", () => {
     assert.equal(normalizePlatform("LinkedIn"), "LinkedIn");
     assert.equal(normalizePlatform("linked in"), "LinkedIn");
+  });
+
+  test("scheduler dry-run does not enqueue or process publish jobs", async () => {
+    const client = createFakeSupabase({
+      posts: [
+        {
+          id: "post-3",
+          user_id: "user-1",
+          workspace_id: "workspace-1",
+          platforms: ["Facebook"],
+          status: "Scheduled",
+          scheduled_for: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+      background_jobs: [],
+      post_queue_jobs: [],
+    });
+
+    const result = await processDuePosts(client as never, 10, true);
+
+    assert.equal(result.enqueued, 1);
+    assert.equal(result.processed, 0);
+    assert.equal(client.tables.background_jobs.length, 0);
+    assert.equal(client.tables.post_queue_jobs.length, 0);
+    assert.equal(client.tables.posts[0].status, "Scheduled");
   });
 });

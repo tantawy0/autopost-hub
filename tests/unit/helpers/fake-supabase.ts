@@ -4,7 +4,9 @@ type Tables = Record<string, Row[]>;
 type Filter =
   | { type: "eq"; column: string; value: unknown }
   | { type: "in"; column: string; values: unknown[] }
-  | { type: "lt"; column: string; value: unknown };
+  | { type: "lt"; column: string; value: unknown }
+  | { type: "lte"; column: string; value: unknown }
+  | { type: "gte"; column: string; value: unknown };
 
 let idCounter = 0;
 
@@ -22,6 +24,8 @@ function matchesFilters(row: Row, filters: Filter[]) {
     if (filter.type === "eq") return valueMatches(row[filter.column], filter.value);
     if (filter.type === "in") return filter.values.some((value) => valueMatches(row[filter.column], value));
     if (filter.type === "lt") return String(row[filter.column] ?? "") < String(filter.value);
+    if (filter.type === "lte") return String(row[filter.column] ?? "") <= String(filter.value);
+    if (filter.type === "gte") return String(row[filter.column] ?? "") >= String(filter.value);
     return true;
   });
 }
@@ -58,6 +62,16 @@ class FakeQuery {
 
   lt(column: string, value: unknown) {
     this.filters.push({ type: "lt", column, value });
+    return this;
+  }
+
+  lte(column: string, value: unknown) {
+    this.filters.push({ type: "lte", column, value });
+    return this;
+  }
+
+  gte(column: string, value: unknown) {
+    this.filters.push({ type: "gte", column, value });
     return this;
   }
 

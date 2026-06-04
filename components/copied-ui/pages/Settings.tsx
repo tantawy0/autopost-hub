@@ -19,6 +19,13 @@ const sections = [
 
 type BillingStatus = {
   plan: PlanDefinition;
+  usage: {
+    channels: number;
+    scheduledPostsMonthly: number;
+    aiRequestsMonthly: number;
+    mediaStorageMb: number;
+    teamMembers: number;
+  } | null;
   subscription: {
     status: string;
     currentPeriodEnd: string | null;
@@ -160,6 +167,7 @@ function BillingPanel() {
   }
 
   const current = status?.plan ?? PLAN_DEFINITIONS.free;
+  const usage = status?.usage ?? null;
   const configuredPlans = new Map(status?.stripe.checkoutPlans.map((plan) => [plan.key, plan.configured]) ?? []);
 
   return (
@@ -217,11 +225,11 @@ function BillingPanel() {
       </div>
 
       <div className="grid gap-3 rounded-2xl border border-border bg-secondary/20 p-4 text-sm md:grid-cols-3">
-        <Limit label="Channels" value={formatLimit(current.limits.channels)} />
-        <Limit label="Scheduled posts" value={formatLimit(current.limits.scheduledPostsMonthly, "/mo")} />
-        <Limit label="AI requests" value={formatLimit(current.limits.aiRequestsMonthly, "/mo")} />
-        <Limit label="Media storage" value={formatLimit(current.limits.mediaStorageMb, " MB")} />
-        <Limit label="Team members" value={formatLimit(current.limits.teamMembers)} />
+        <Limit label="Channels" value={formatLimit(current.limits.channels)} used={usage?.channels} />
+        <Limit label="Scheduled posts" value={formatLimit(current.limits.scheduledPostsMonthly, "/mo")} used={usage?.scheduledPostsMonthly} />
+        <Limit label="AI requests" value={formatLimit(current.limits.aiRequestsMonthly, "/mo")} used={usage?.aiRequestsMonthly} />
+        <Limit label="Media storage" value={formatLimit(current.limits.mediaStorageMb, " MB")} used={usage ? Math.round(usage.mediaStorageMb) : undefined} />
+        <Limit label="Team members" value={formatLimit(current.limits.teamMembers)} used={usage?.teamMembers} />
         <Limit label="Analytics history" value={formatLimit(current.limits.analyticsDays, " days")} />
       </div>
 
@@ -235,11 +243,12 @@ function BillingPanel() {
   );
 }
 
-function Limit({ label, value }: { label: string; value: string }) {
+function Limit({ label, value, used }: { label: string; value: string; used?: number }) {
   return (
     <div>
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className="mt-1 font-semibold">{value}</div>
+      {typeof used === "number" ? <div className="mt-0.5 text-[11px] text-muted-foreground">Used {used.toLocaleString()}</div> : null}
     </div>
   );
 }

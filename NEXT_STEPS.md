@@ -9,7 +9,7 @@ Last generated: 2026-05-26
 | 1 | Staging credential smoke: verify Supabase migrations, `post-images`, auth, autosave, media upload, scheduler/worker health. | P0 | Manual + Codex | Codex medium for scripting/reporting; manual for dashboards/secrets. | `npx supabase db push --linked`, `npm test`, `npm run lint`, `npm run build -- --webpack` |
 | 2 | Meta OAuth staging validation: connect Facebook Page and Instagram Business account, publish one image post, inspect attempts/audit logs. | P0 | Manual + Codex | Codex medium; manual Meta dashboard/account actions. | `npm test`, `npm run build -- --webpack`, credential-backed API/browser smoke |
 | 3 | Cron runner setup: configure authenticated scheduler and worker calls; confirm due posts and background jobs process safely. | P0 | Manual + Codex | Codex low/medium; manual hosting cron setup. | `curl` protected health/process endpoints, `npm test` |
-| 4 | Browser E2E activation: enable Playwright with real test user and stable staging dataset. | P1 | Codex | Medium reasoning. | `E2E_START_SERVER=1 E2E_RUN_BROWSER=1 E2E_EMAIL=... E2E_PASSWORD=... npm run test:e2e` |
+| 4 | CI/staging E2E activation: reuse the local E2E setup pattern with hosting secrets and a stable safe staging dataset. | P1 | Codex + Manual | Medium reasoning; manual for staging secrets. | `npm run setup:e2e`, `npm run test:e2e` locally; CI should provide `E2E_BASE_URL`, `E2E_EMAIL`, `E2E_PASSWORD`, `E2E_RUN_BROWSER=1` |
 | 5 | Production deployment readiness update: sync docs after staging validation, update stale blockers in production docs/checklists. | P1 | Codex | Low reasoning. | `npm test`, `npm run lint`, `npm run build -- --webpack` |
 | 6 | AI provider production validation: verify OpenRouter model allowlist, assistant route, content-score route, and fallback logs. | P1 | Codex | Medium reasoning. | `npm test`, authenticated API smoke for `/api/ai/assistant` and `/api/ai/content-score` |
 | 7 | 21st agent validation: configure 21st dashboard provider key for `my-agent`, reset chat, verify token/sandbox/thread routes. | P1 | Manual + Codex | Medium reasoning; manual dashboard/CLI credentials. | authenticated API smoke for `/api/an-token`, `/api/agent/sandbox`, `/api/agent/threads` |
@@ -21,7 +21,7 @@ Last generated: 2026-05-26
 
 ## Immediate Best Next Slice
 
-Run a real staging credential smoke. The codebase is structurally ready, but production confidence now depends on proving the external seams: Supabase project, storage bucket/policies, Meta OAuth/publishing, cron bearer auth, and AI provider credentials.
+Run a real provider-success staging smoke. Local browser/API E2E now passes with a generated Supabase E2E user; production confidence now depends on proving Meta OAuth/publishing, provider fetchable media, cron bearer auth, and AI/21st provider credentials against safe staging assets.
 
 ## Standard Verification Commands
 
@@ -35,7 +35,8 @@ npm run build -- --webpack
 
 ```bash
 npx supabase db push --linked
-E2E_START_SERVER=1 E2E_RUN_BROWSER=1 E2E_EMAIL=<test-user> E2E_PASSWORD=<test-password> npm run test:e2e
+npm run setup:e2e
+npm run test:e2e
 ```
 
 Do not print real secret values in logs, screenshots, reports, or chat output.

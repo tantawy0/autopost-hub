@@ -173,7 +173,7 @@ export default function CommunityPage() {
                         </div>
                       </div>
                       <div className="mt-5 grid gap-3 md:grid-cols-2">
-                        <Link href="/create-post" className="rounded-lg border border-white/10 bg-white/5 p-4 transition hover:bg-white/8">
+                        <Link href="/create" className="rounded-lg border border-white/10 bg-white/5 p-4 transition hover:bg-white/8">
                           <p className="font-black text-white">Post something new</p>
                           <p className="mt-2 text-sm leading-6 text-zinc-400">Create content that invites comments and replies.</p>
                         </Link>

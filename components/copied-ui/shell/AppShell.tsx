@@ -7,7 +7,6 @@ import { Topbar } from "./Topbar";
 import { LayoutDashboard, CalendarDays, PenSquare, BarChart3, Sparkles, Images, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Dock } from "@/components/copied-ui/effects/Dock";
-import { motion, AnimatePresence } from "framer-motion";
 
 const dockItems = [
   { to: "/create", label: "Create", icon: PenSquare },
@@ -34,11 +33,7 @@ export function CopiedAppShell({ children, onLogout }: { children: React.ReactNo
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar />
         <main className="flex-1 px-4 pb-28 pt-6 lg:px-8 lg:pb-32">
-          <AnimatePresence mode="wait">
-            <motion.div key={pathname} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: "easeOut" }}>
-              {children}
-            </motion.div>
-          </AnimatePresence>
+          {children}
         </main>
       </div>
 

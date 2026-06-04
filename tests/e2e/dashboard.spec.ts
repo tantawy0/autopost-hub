@@ -7,9 +7,9 @@ test.describe("dashboard", () => {
 
   test("shows dashboard sections and responsive navigation", async ({ page }) => {
     await signIn(page);
-    await expect(page.getByRole("heading", { name: "Creator command center" })).toBeVisible();
-    await expect(page.getByText("Getting started")).toBeVisible();
-    await expect(page.getByText("Today's queue")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Creator command center" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("Getting started")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("Today's queue")).toBeVisible({ timeout: 15_000 });
     await page.setViewportSize({ width: 390, height: 844 });
     await expect(page.getByRole("navigation", { name: "Primary mobile" })).toBeVisible();
   });

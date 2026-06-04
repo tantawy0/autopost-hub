@@ -1,13 +1,29 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { getBearerUser, toSafeError } from "@/lib/auth";
+import { toSafeError } from "@/lib/auth";
 import { BillingError, createBillingPortalSession } from "@/lib/server/billing/service";
+import {
+  requireAuthenticatedUser,
+  requireWorkspacePermission,
+} from "@/lib/server/authorization";
+import { assertRateLimit, getRateLimitKey } from "@/lib/server/rate-limit";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
 export async function POST(request: NextRequest) {
   try {
     const client = createServerSupabaseClient();
-    const user = await getBearerUser(client, request.headers.get("authorization"));
+    const user = await requireAuthenticatedUser(client, request);
+    await requireWorkspacePermission(client, user, "billing_manage", {
+      action: "billing.portal",
+      entityType: "billing",
+      request,
+    });
+    await assertRateLimit(client, {
+      key: getRateLimitKey(request, user.id),
+      action: "billing_portal",
+      limit: 10,
+      windowSeconds: 60,
+    });
     const portal = await createBillingPortalSession(client, user);
 
     return NextResponse.json(portal);

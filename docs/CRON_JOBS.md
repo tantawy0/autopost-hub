@@ -1,6 +1,6 @@
 # Cron Jobs
 
-Last audited: 2026-06-02
+Last audited: 2026-06-04
 
 All production cron requests must include:
 
@@ -35,6 +35,28 @@ Content-Type: application/json
 - Unauthorized cron calls write `authz.denied` audit entries.
 - Worker jobs are idempotency-keyed in `background_jobs`.
 - Scheduled publishing still checks terminal post status before provider calls.
+- `POST /api/worker/process` supports `{ "dryRun": true }` and does not claim jobs.
+- `POST /api/scheduler/process-due-posts` supports `{ "dryRun": true }` and does not enqueue due posts or publish.
+
+## Production Smoke
+
+Use the safe smoke script against production or staging after setting the target origin and cron secret in the local shell or `.env.local`:
+
+```bash
+SMOKE_BASE_URL=https://autopost-hub.vercel.app npm run smoke:cron
+```
+
+The smoke checks:
+
+- public app health
+- worker/scheduler health reject missing auth
+- worker/scheduler process endpoints reject invalid auth
+- Vercel cron bridge endpoints reject missing auth
+- worker publish `dryRun` succeeds without claiming jobs
+- scheduler due-post `dryRun` succeeds without enqueueing or publishing
+- responses do not expose secret-shaped values
+
+Do not call `/api/cron/worker` or `/api/cron/scheduler` with a valid secret during smoke tests. Those GET bridges are meant for real Vercel/Supabase cron execution and can process live jobs.
 
 ## Vercel Example
 

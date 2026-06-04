@@ -10,6 +10,7 @@ import { Logo } from "@/components/copied-ui/Logo";
 import { PlatformBadge } from "@/components/copied-ui/PlatformBadge";
 import { ShiningText } from "@/components/copied-ui/effects/ShiningText";
 import { Button } from "@/components/ui/button";
+import { buildAuthCallbackUrl, normalizeAuthNext } from "@/lib/auth-redirect";
 import { supabase } from "@/lib/supabase";
 
 export default function AuthPage() {
@@ -27,6 +28,7 @@ export default function AuthPage() {
       const params = new URLSearchParams(window.location.search);
       const errorDescription = params.get("error_description") ?? params.get("error");
       const code = params.get("code");
+      const next = normalizeAuthNext(params.get("next"));
 
       if (errorDescription) {
         toast.error(errorDescription);
@@ -45,7 +47,7 @@ export default function AuthPage() {
 
       const { data } = await supabase.auth.getSession();
       if (active && data.session) {
-        router.push("/dashboard");
+        router.replace(next);
         router.refresh();
       }
     };
@@ -65,7 +67,12 @@ export default function AuthPage() {
     setLoading(true);
     try {
       if (mode === "register") {
-        const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${window.location.origin}/auth` } });
+        const next = normalizeAuthNext(new URLSearchParams(window.location.search).get("next"));
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: buildAuthCallbackUrl(window.location.origin, next) },
+        });
         if (error) throw error;
         toast.success("Account created. Confirm your email, then sign in.");
         setMode("login");
@@ -75,8 +82,9 @@ export default function AuthPage() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       if (data.session) {
+        const next = normalizeAuthNext(new URLSearchParams(window.location.search).get("next"));
         toast.success("Signed in");
-        router.push("/dashboard");
+        router.replace(next);
         router.refresh();
       }
     } catch (error) {
@@ -89,10 +97,11 @@ export default function AuthPage() {
   const signInWithProvider = async (provider: "google" | "github") => {
     setSocialLoading(provider);
     try {
+      const next = normalizeAuthNext(new URLSearchParams(window.location.search).get("next"));
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth`,
+          redirectTo: buildAuthCallbackUrl(window.location.origin, next),
           queryParams:
             provider === "google"
               ? { access_type: "offline", prompt: "consent" }

@@ -9,7 +9,7 @@ test.describe("authentication", () => {
   test("redirects protected dashboard users to auth when signed out", async ({ page }) => {
     await clearLocalAuth(page);
     await page.goto("/dashboard");
-    await expect(page).toHaveURL(/\/auth/);
+    await expect(page).toHaveURL(/\/auth\?next=%2Fdashboard/);
   });
 
   test("signs in and signs out with configured test credentials", async ({ page }) => {

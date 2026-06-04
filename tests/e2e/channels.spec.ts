@@ -14,4 +14,20 @@ test.describe("channels", () => {
     await expect(page.getByText("TikTok")).toBeVisible();
     await expect(page.getByText("Disconnected").first()).toBeVisible();
   });
+
+  test("starts channel OAuth from the copied UI connect action", async ({ page }) => {
+    const callbackUrl = `${process.env.E2E_BASE_URL ?? "http://127.0.0.1:3137"}/channels?connected=instagram`;
+
+    await page.route(/\/api\/meta\/login\?platform=instagram&returnTo=\/channels$/, async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ url: callbackUrl }),
+      });
+    });
+
+    await signIn(page);
+    await page.goto("/channels");
+    await page.getByRole("button", { name: /connect channel/i }).click();
+    await page.waitForURL(callbackUrl);
+  });
 });

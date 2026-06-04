@@ -76,6 +76,10 @@ describe("auth and RBAC denial handling", () => {
     assert.equal(isPermissionAllowed("analytics", "Analyst"), true);
     assert.equal(isPermissionAllowed("publish", "Editor"), true);
     assert.equal(isPermissionAllowed("channel_manage", "Editor"), false);
+    assert.equal(isPermissionAllowed("billing_manage", "Owner"), true);
+    assert.equal(isPermissionAllowed("billing_manage", "Admin"), true);
+    assert.equal(isPermissionAllowed("billing_manage", "Editor"), false);
+    assert.equal(isPermissionAllowed("billing_manage", "Analyst"), false);
   });
 
   test("requires the cron secret for worker and scheduler entry points", () => {

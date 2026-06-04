@@ -16,6 +16,16 @@ export class OwnershipError extends Error {
   }
 }
 
+export class ValidationError extends Error {
+  code = "validation_error";
+  status = 400;
+
+  constructor(message = "Invalid request.") {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+
 export enum AuthorizationErrorCode {
   AUTH_REQUIRED = "auth_required",
   FORBIDDEN = "forbidden",
@@ -92,8 +102,21 @@ export function toSafeError(error: unknown): { status: number; message: string; 
     return { status: 403, message: error.message, code: AuthorizationErrorCode.FORBIDDEN };
   }
 
+  if (error instanceof ValidationError) {
+    return { status: error.status, message: error.message, code: error.code };
+  }
+
   if (error instanceof Error && error.name === "RateLimitError") {
     return { status: 429, message: error.message, code: "rate_limited" };
+  }
+
+  if (error instanceof Error && error.name === "PlanLimitError") {
+    const planError = error as Error & { status?: number; code?: string };
+    return {
+      status: planError.status ?? 402,
+      message: error.message,
+      code: planError.code ?? "plan_limit_exceeded",
+    };
   }
 
   return { status: 500, message: "Internal server error.", code: "server_error" };

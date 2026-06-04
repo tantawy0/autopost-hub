@@ -7,10 +7,12 @@ Last generated: 2026-05-26
 - Next.js app shell and core routes for dashboard, auth, composer, drafts, calendar, published posts, channels, settings, community, and AI agent page.
 - Supabase client/server setup with server-only service-role isolation.
 - Auth helpers, bearer auth, safe error mapping, ownership assertions, workspace RBAC, and cron authorization.
+- Auth callback hardening for Google/GitHub/Supabase OAuth with safe `next` redirects and no open redirect path.
 - Core post lifecycle: draft, schedule, publish-now, process due posts, terminal state protection, per-destination publishing attempts.
 - Meta OAuth foundation: login, callback, signed state, token exchange, long-lived token exchange, destination discovery.
 - Facebook Page publishing and Instagram Business publishing provider modules.
 - Connected account listing, disconnect flow, reconnect-required states, selectable destinations.
+- OAuth reconnect capacity hardening for existing Meta/LinkedIn channels so re-auth flows are not blocked as brand-new channel additions.
 - Draft autosave API with versioned persistence.
 - Media validation/upload/storage pipeline using `post-images`, user/workspace-scoped paths, DB records, and publish-time stored media validation.
 - Supabase storage migration for `post-images` bucket and authenticated object policies.
@@ -23,7 +25,7 @@ Last generated: 2026-05-26
 
 ## Partially Implemented
 
-- Browser E2E coverage exists but most specs are environment-gated until browser credentials and live/staging data are configured.
+- Browser/API E2E coverage is locally active after `npm run setup:e2e`; authenticated browser/API suite passes against a local production server.
 - Analytics UI/aggregation is foundation-level; real provider metric sync is present but needs credential-backed staging validation.
 - AI product experience is connected but depends on valid provider keys for production-quality completions.
 - Brand brain and automation APIs persist basic records but do not yet include full product workflows/runners.
@@ -78,16 +80,17 @@ Last generated: 2026-05-26
 
 ## Current Test/Build Status
 
-- `npm test`: passing 16/16 unit tests.
+- `npm test`: passing 57/57 unit tests.
+- `npm run test:e2e`: passing 19/19 Playwright tests after `npm run setup:e2e`.
 - `npm run lint`: passing.
 - `npm run build -- --webpack`: passing.
+- Local and production cron smoke checks passed for protected health/process authorization.
 - Prior local smoke: protected health/cron auth, AI status no-secret exposure, analytics/autosave unauthorized behavior passed.
 - Supabase linked db push previously applied `202605260001_storage_post_images_bucket.sql` successfully.
 
 ## Current Known Blockers
 
 - Production/staging cannot be fully validated without real Supabase, Meta, OpenRouter, 21st, and cron credentials.
-- Browser/API E2E suites remain gated by `E2E_RUN_BROWSER`, `E2E_EMAIL`, `E2E_PASSWORD`, and/or a running app URL.
-- Provider-success publishing E2E requires real Meta sandbox/test accounts and eligible Facebook/Instagram assets.
+- Provider-success publishing E2E requires real Meta sandbox/test accounts, eligible Facebook/Instagram assets, and approved provider access where applicable.
 - TikTok publishing is not implemented.
 - Full automation runner, engagement reply workflow, advanced team management, and recurring/smart scheduling remain future slices.

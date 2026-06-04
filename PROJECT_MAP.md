@@ -1,6 +1,6 @@
 # AutoPost Hub Project Map
 
-Last generated: 2026-05-26
+Last generated: 2026-06-03
 
 ## Stack
 
@@ -20,7 +20,7 @@ Last generated: 2026-05-26
 | `lib/` | Core client/server services, Supabase clients, domain logic, validation, provider adapters, publishing, auth, and types. |
 | `lib/server/` | Server-only services: authorization, audit, env validation, rate limiting, AI providers, analytics ingestion, and jobs. |
 | `supabase/migrations/` | Idempotent schema/storage migrations with RLS and indexes. |
-| `docs/` | Production, environment, cron, storage, deployment, Meta, and RLS documentation. |
+| `docs/` | Production, environment, cron, storage, deployment, Meta, RLS, feature coverage, and ECC audit documentation. |
 | `tests/unit/` | Deterministic backend/domain unit tests using Node test runner and fake Supabase helpers. |
 | `tests/e2e/` | Playwright specs, mostly environment-gated for real browser/app credentials. |
 | `agents/my-agent/` | 21st SDK creator assistant with tools for captions, hashtags, timing, analytics, and draft payloads. |
@@ -29,11 +29,14 @@ Last generated: 2026-05-26
 
 | Route | File | Role |
 | --- | --- | --- |
-| `/` | `app/page.tsx` | Dashboard shell with growth summary, queue, actions, insights, recent posts. |
+| `/` | `app/page.tsx` | Copied ZIP landing page / public product entry. |
 | `/auth` | `app/auth/page.tsx` | Sign in/sign up UI backed by Supabase auth. |
-| `/create-post` | `app/create-post/page.tsx` | Composer entry point using `PostComposerForm`. |
-| `/edit-post/[id]` | `app/edit-post/[id]/page.tsx` | Existing post editor entry point. |
-| `/drafts` | `app/drafts/page.tsx` | Draft listing and post management. |
+| `/dashboard` | `app/dashboard/page.tsx` | Authenticated copied-UI dashboard shell. |
+| `/create` | `app/create/page.tsx` | Active copied-UI composer entry point. |
+| `/create-post` | `app/create-post/page.tsx` | Legacy shortcut redirecting to `/create`. |
+| `/edit-post/[id]` | `app/edit-post/[id]/page.tsx` | Existing post editor using the copied composer style with real post data. |
+| `/queue` | `app/queue/page.tsx` | Active copied-UI queue/draft/scheduled/failed post management. |
+| `/drafts` | `app/drafts/page.tsx` | Legacy shortcut redirecting to `/queue`. |
 | `/calendar` | `app/calendar/page.tsx` | Calendar/timeline view of scheduled posts. |
 | `/published` | `app/published/page.tsx` | Published/imported post history. |
 | `/channels` | `app/channels/page.tsx` | Connected channel management and Meta setup. |
@@ -64,7 +67,7 @@ Last generated: 2026-05-26
 | `GET /api/workspaces` | Bearer user | Ensures/returns default workspace. |
 | `POST /api/ai/assistant` | Bearer user + AI RBAC | AI suggestions with provider fallback and persistence. |
 | `POST /api/ai/content-score` | Bearer user + AI RBAC | Content score API foundation. |
-| `GET /api/an-status` | Public | Non-secret 21st/AI status. |
+| `GET /api/an-status` | Bearer user + AI RBAC | Non-secret 21st/AI status. |
 | `POST /api/an-token` | Bearer user + AI RBAC | 21st token route. |
 | `POST /api/agent/sandbox` | Bearer user + AI RBAC | 21st sandbox creation. |
 | `GET/POST /api/agent/threads` | Bearer user + AI RBAC | 21st thread list/create. |

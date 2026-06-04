@@ -7,6 +7,7 @@ import {
   requireAuthenticatedUser,
   requireWorkspacePermission,
 } from "@/lib/server/authorization";
+import { assertPlanCapacity } from "@/lib/server/billing/limits";
 import { assertRateLimit, getRateLimitKey } from "@/lib/server/rate-limit";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
@@ -34,6 +35,11 @@ export async function POST(request: NextRequest) {
     if (!workspace.workspaceId) {
       return NextResponse.json({ message: "Workspace is required." }, { status: 400 });
     }
+
+    await assertPlanCapacity(client, {
+      workspaceId: workspace.workspaceId,
+      metric: "aiRequestsMonthly",
+    });
 
     const suggestions = await generateAssistantSuggestions(client, {
       workspaceId: workspace.workspaceId,

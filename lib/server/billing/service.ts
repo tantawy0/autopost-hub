@@ -10,6 +10,7 @@ import {
   type PaidSelfServePlanKey,
   type PlanKey,
 } from "@/lib/billing/plans";
+import { getPlanUsage } from "@/lib/server/billing/limits";
 import { getStripeClient, getStripeWebhookSecret, isStripeConfigured } from "@/lib/server/billing/stripe";
 import { getAppUrl } from "@/lib/supabase-server";
 import { ensureDefaultWorkspace, type WorkspaceContext } from "@/lib/workspaces";
@@ -171,10 +172,14 @@ export async function getBillingStatus(client: SupabaseClient, user: User) {
   const workspace = await ensureDefaultWorkspace(client, user);
   const subscription = await ensureFreeSubscription(client, workspace);
   const plan = getPlanDefinition(subscription.plan_key);
+  const usage = workspace.workspaceId
+    ? await getPlanUsage(client, workspace.workspaceId).catch(() => null)
+    : null;
 
   return {
     workspace,
     plan,
+    usage,
     subscription: {
       status: subscription.status,
       currentPeriodEnd: subscription.current_period_end,
@@ -272,7 +277,7 @@ async function upsertSubscriptionFromStripe(
 
   if (!workspaceId) return;
 
-  await client.from("workspace_subscriptions").upsert(
+  const { error } = await client.from("workspace_subscriptions").upsert(
     [
       {
         workspace_id: workspaceId,
@@ -292,6 +297,10 @@ async function upsertSubscriptionFromStripe(
     ],
     { onConflict: "workspace_id" },
   );
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 async function handleCheckoutCompleted(client: SupabaseClient, session: Stripe.Checkout.Session) {
@@ -299,7 +308,7 @@ async function handleCheckoutCompleted(client: SupabaseClient, session: Stripe.C
   const userId = session.metadata?.userId || null;
 
   if (workspaceId && userId && typeof session.customer === "string") {
-    await client.from("billing_customers").upsert(
+    const { error } = await client.from("billing_customers").upsert(
       [
         {
           user_id: userId,
@@ -311,6 +320,10 @@ async function handleCheckoutCompleted(client: SupabaseClient, session: Stripe.C
       ],
       { onConflict: "workspace_id" },
     );
+
+    if (error) {
+      throw new Error(error.message);
+    }
   }
 
   if (typeof session.subscription === "string") {
@@ -333,11 +346,15 @@ export async function handleStripeWebhook(client: SupabaseClient, rawBody: strin
   const stripe = getStripeClient();
   const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
 
-  const { data: existing } = await client
+  const { data: existing, error: existingError } = await client
     .from("billing_events")
     .select("id")
     .eq("stripe_event_id", event.id)
     .maybeSingle();
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
 
   if (existing) {
     return { received: true, duplicate: true };
@@ -356,7 +373,7 @@ export async function handleStripeWebhook(client: SupabaseClient, rawBody: strin
   }
 
   const object = event.data.object as { metadata?: Stripe.Metadata };
-  await client.from("billing_events").insert([
+  const { error: eventError } = await client.from("billing_events").insert([
     {
       workspace_id: object.metadata?.workspaceId || null,
       stripe_event_id: event.id,
@@ -368,6 +385,14 @@ export async function handleStripeWebhook(client: SupabaseClient, rawBody: strin
       },
     },
   ]);
+
+  if (eventError) {
+    if (/duplicate|23505|stripe_event_id/i.test(eventError.message)) {
+      return { received: true, duplicate: true };
+    }
+
+    throw new Error(eventError.message);
+  }
 
   return { received: true, duplicate: false };
 }

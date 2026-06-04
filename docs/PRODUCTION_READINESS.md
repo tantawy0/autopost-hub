@@ -121,6 +121,20 @@ Confirmed:
 | `GET /api/scheduler/health` | Added | `CRON_SECRET` | Scheduler env readiness. |
 | `GET /api/ops/readiness` | Added | `CRON_SECRET` | Launch gate for env, service role, database, and storage. |
 
+## Auth Provider Smoke
+
+See `docs/AUTH_PROVIDER_SMOKE.md`.
+
+Run before public launch:
+
+```bash
+SMOKE_BASE_URL=https://autopost-hub.vercel.app npm run smoke:auth
+```
+
+This verifies protected-route redirects, safe `/auth/callback` provider-error
+handling, and Google/GitHub OAuth start behavior without printing provider
+secrets.
+
 ## Secret Exposure Audit
 
 Confirmed:

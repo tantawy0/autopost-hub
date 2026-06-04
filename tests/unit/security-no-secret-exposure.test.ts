@@ -61,4 +61,24 @@ describe("client routes do not expose secrets", () => {
 
     assert.deepEqual(findings, []);
   });
+
+  test("client-facing source avoids unsafe HTML sinks and local draft persistence", () => {
+    const files = clientRoots.flatMap((root) => collectSourceFiles(path.join(repoRoot, root)));
+    const findings: string[] = [];
+
+    for (const file of files) {
+      const source = fs.readFileSync(file, "utf8");
+      if (!isClientSurface(file, source)) continue;
+
+      if (source.includes("dangerouslySetInnerHTML")) {
+        findings.push(`${path.relative(repoRoot, file)}: dangerouslySetInnerHTML`);
+      }
+
+      if (source.includes("autopost:composer-draft")) {
+        findings.push(`${path.relative(repoRoot, file)}: autopost:composer-draft`);
+      }
+    }
+
+    assert.deepEqual(findings, []);
+  });
 });

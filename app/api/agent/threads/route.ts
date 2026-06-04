@@ -29,6 +29,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(safe, { status: safe.status });
   }
 
+  if (!process.env.API_KEY_21ST) {
+    return NextResponse.json(
+      { error: "Agent thread provider is not configured.", code: "agent_not_configured" },
+      { status: 503 },
+    );
+  }
+
   try {
     const threads = await agentClient.threads.list({ sandboxId });
 
@@ -41,7 +48,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const body = (await request.json()) as { sandboxId?: string; name?: string };
+  const body = (await request.json().catch(() => ({}))) as { sandboxId?: string; name?: string };
 
   if (!body.sandboxId) {
     return NextResponse.json({ error: "sandboxId required" }, { status: 400 });
@@ -58,6 +65,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const safe = toSafeError(error);
     return NextResponse.json(safe, { status: safe.status });
+  }
+
+  if (!process.env.API_KEY_21ST) {
+    return NextResponse.json(
+      { error: "Agent thread provider is not configured.", code: "agent_not_configured" },
+      { status: 503 },
+    );
   }
 
   try {

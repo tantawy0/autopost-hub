@@ -6,6 +6,7 @@ import {
   requireAuthenticatedUser,
   requireWorkspacePermission,
 } from "@/lib/server/authorization";
+import { assertOAuthStartCapacity } from "@/lib/server/billing/limits";
 import { createServerSupabaseClient, getAppUrl } from "@/lib/supabase-server";
 
 function getRequestAppUrl(request: NextRequest): string {
@@ -35,10 +36,14 @@ export async function GET(request: NextRequest) {
 
     const client = createServerSupabaseClient();
     const user = await requireAuthenticatedUser(client, request);
-    await requireWorkspacePermission(client, user, "content_edit", {
+    const workspace = await requireWorkspacePermission(client, user, "content_edit", {
       action: "oauth.login",
       entityType: "connected_account",
       request,
+    });
+    await assertOAuthStartCapacity(client, {
+      workspaceId: workspace.workspaceId!,
+      platform: platform === "facebook" ? "Facebook" : "Instagram",
     });
     const authorizationUrl = buildMetaAuthorizationUrl(
       {

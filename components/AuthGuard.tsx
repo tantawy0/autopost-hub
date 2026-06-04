@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { buildAuthPath } from "@/lib/auth-redirect";
 import { supabase } from "@/lib/supabase";
 
 export default function AuthGuard({
@@ -23,7 +24,7 @@ export default function AuthGuard({
       if (error || !session) {
         if (error) toast.error(error.message);
         if (!session) toast.message("Sign in to continue");
-        router.push("/auth");
+        router.replace(buildAuthPath(`${window.location.pathname}${window.location.search}`));
         return;
       }
 

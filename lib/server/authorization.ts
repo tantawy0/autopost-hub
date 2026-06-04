@@ -28,7 +28,8 @@ export type WorkspacePermission =
   | "ai"
   | "social_sync"
   | "channel_manage"
-  | "content_edit";
+  | "content_edit"
+  | "billing_manage";
 
 export function isPermissionAllowed(
   permission: WorkspacePermission,
@@ -43,6 +44,7 @@ export function isPermissionAllowed(
     case "analytics":
     case "ai":
       return canAnalyze(role);
+    case "billing_manage":
     case "channel_manage":
       return canAdmin(role);
     default:

@@ -120,9 +120,14 @@ https://<your-supabase-project>.supabase.co/auth/v1/callback
 Allowed redirect URLs should include:
 
 ```text
+https://autopost-hub.vercel.app/auth/callback
 https://autopost-hub.vercel.app/auth
+http://localhost:3000/auth/callback
 http://localhost:3000/auth
+http://localhost:3003/auth/callback
 http://localhost:3003/auth
+http://127.0.0.1:3137/auth/callback
+http://127.0.0.1:3137/auth
 ```
 
 ## Stripe Billing

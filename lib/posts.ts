@@ -11,12 +11,8 @@ import { normalizePlatform, normalizePostStatus } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 import { getClientUser } from "@/lib/auth";
 import { listConnectedAccounts } from "@/lib/channels";
-import {
-  MEDIA_BUCKET,
-  buildMediaStoragePath,
-  inferMediaType,
-  validateMediaFile,
-} from "@/lib/validation/media";
+import { getClientAuthHeaders } from "@/lib/client-auth";
+import { validateMediaFile } from "@/lib/validation/media";
 
 type PostRow = {
   id: string;
@@ -117,22 +113,6 @@ async function recordActivity(
     .from("activity_events")
     .insert([{ user_id: userId, post_id: postId, event_type: eventType, message, metadata }])
     .then(() => undefined);
-}
-
-async function getCurrentWorkspaceId(userId: string): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("workspace_members")
-    .select("workspace_id")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (error && !/relation .*workspace_members|schema cache|does not exist/i.test(error.message)) {
-    throw new Error(error.message);
-  }
-
-  return (data as { workspace_id?: string } | null)?.workspace_id ?? null;
 }
 
 export async function listMediaAssets(): Promise<MediaAssetDTO[]> {
@@ -450,101 +430,20 @@ export async function listPostsByStatus(statuses: PostCardDTO["status"][]): Prom
 }
 
 export async function savePost(input: SavePostInput): Promise<PostCardDTO> {
-  const user = await getClientUser();
-  const payload = {
-    user_id: user.id,
-    caption: input.caption.trim(),
-    first_comment: input.firstComment.trim() || null,
-    image_url: input.imageUrl,
-    platforms: input.platforms.map((platform) => platform.toLowerCase()),
-    status: input.status,
-    lifecycle_status: input.status === "Scheduled" ? "scheduled" : "draft",
-    schedule_time: input.status === "Scheduled" ? input.scheduledFor : null,
-    scheduled_for: input.status === "Scheduled" ? input.scheduledFor : null,
-    published_at: null,
-    internal_notes: input.internalNotes?.trim() || null,
-    post_format: input.postFormat ?? "Post",
-    approval_requested: Boolean(input.approvalRequested),
-    approval_status: input.approvalRequested ? "Requested" : "None",
-    updated_at: new Date().toISOString(),
-  };
+  const response = await fetch("/api/posts/save", {
+    method: "POST",
+    headers: await getClientAuthHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(input),
+  });
+  const body = (await response.json().catch(() => null)) as
+    | (PostCardDTO & { message?: string })
+    | null;
 
-  const runSave = (body: Record<string, unknown>) =>
-    input.postId
-      ? supabase
-          .from("posts")
-          .update(body)
-          .eq("id", input.postId)
-          .eq("user_id", user.id)
-          .select()
-          .single()
-      : supabase
-          .from("posts")
-          .insert([{ ...body, created_at: new Date().toISOString() }])
-          .select()
-          .single();
-
-  let { data, error } = await runSave(payload);
-
-  if (error && /internal_notes|post_format|approval_requested|approval_status|scheduled_for|lifecycle_status/i.test(error.message)) {
-    const { internal_notes, post_format, approval_requested, approval_status, scheduled_for, lifecycle_status, ...legacyPayload } = payload;
-    void internal_notes;
-    void post_format;
-    void approval_requested;
-    void approval_status;
-    void scheduled_for;
-    void lifecycle_status;
-    const fallback = await runSave(legacyPayload);
-    data = fallback.data;
-    error = fallback.error;
+  if (!response.ok || !body) {
+    throw new Error(body?.message ?? "Unable to save post.");
   }
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const saved = toPostCardDTO(data as PostRow);
-  const mediaIds = (input.mediaAssets ?? []).map((asset) => asset.id).filter(Boolean);
-
-  if (mediaIds.length > 0) {
-    const { error: mediaError } = await supabase
-      .from("media_assets")
-      .update({ post_id: saved.id })
-      .eq("user_id", user.id)
-      .in("id", mediaIds);
-
-    if (mediaError && !/relation .*media_assets|schema cache|does not exist/i.test(mediaError.message)) {
-      throw new Error(mediaError.message);
-    }
-  }
-
-  const selectedAccounts = await listConnectedAccounts().catch(() => []);
-  const destinationRows = selectedAccounts
-    .filter((account) => input.platforms.includes(account.platform))
-    .map((account) => ({
-      user_id: user.id,
-      post_id: saved.id,
-      connected_account_id: account.id,
-      platform: account.platform,
-      status: input.status === "Scheduled" ? "scheduled" : "selected",
-    }));
-
-  if (destinationRows.length > 0) {
-    await supabase
-      .from("post_destinations")
-      .upsert(destinationRows, { onConflict: "post_id,connected_account_id" })
-      .then(() => undefined);
-  }
-
-  await recordActivity(
-    user.id,
-    input.status === "Scheduled" ? "post.scheduled" : "post.draft_saved",
-    input.status === "Scheduled" ? "Post scheduled" : "Draft saved",
-    { platforms: input.platforms, approvalRequested: Boolean(input.approvalRequested) },
-    saved.id,
-  );
-
-  return saved;
+  return body;
 }
 
 export async function reschedulePost(postId: string, scheduledFor: string): Promise<PostCardDTO> {
@@ -643,74 +542,21 @@ export async function uploadMediaAsset(file: File): Promise<MediaAssetDTO> {
     throw new Error(validationError);
   }
 
-  const user = await getClientUser();
-  const workspaceId = await getCurrentWorkspaceId(user.id);
-  const filePath = buildMediaStoragePath({ userId: user.id, workspaceId, file });
+  const formData = new FormData();
+  formData.append("file", file);
 
-  const { error } = await supabase.storage.from(MEDIA_BUCKET).upload(filePath, file, {
-    contentType: file.type,
-    upsert: false,
+  const response = await fetch("/api/media/upload", {
+    method: "POST",
+    headers: await getClientAuthHeaders(),
+    body: formData,
   });
+  const body = (await response.json().catch(() => null)) as
+    | (MediaAssetDTO & { message?: string })
+    | null;
 
-  if (error) {
-    throw new Error(error.message);
+  if (!response.ok || !body) {
+    throw new Error(body?.message ?? "Upload failed.");
   }
 
-  const { data } = supabase.storage.from(MEDIA_BUCKET).getPublicUrl(filePath);
-  const mediaType = inferMediaType(file);
-  const { data: insertedAsset, error: assetError } = await supabase
-    .from("media_assets")
-    .insert([
-      {
-        user_id: user.id,
-        workspace_id: workspaceId,
-        storage_bucket: MEDIA_BUCKET,
-        storage_path: filePath,
-        public_url: data.publicUrl,
-        media_type: mediaType,
-        mime_type: file.type,
-        size_bytes: file.size,
-      },
-    ])
-    .select("id")
-    .single();
-  let asset = insertedAsset;
-
-  if (assetError) {
-    if (/workspace_id|schema cache/i.test(assetError.message)) {
-      const { data: fallbackAsset, error: fallbackError } = await supabase
-        .from("media_assets")
-        .insert([
-          {
-            user_id: user.id,
-            storage_bucket: MEDIA_BUCKET,
-            storage_path: filePath,
-            public_url: data.publicUrl,
-            media_type: mediaType,
-            mime_type: file.type,
-            size_bytes: file.size,
-          },
-        ])
-        .select("id")
-        .single();
-
-      if (fallbackError && !/relation .*media_assets|schema cache|does not exist/i.test(fallbackError.message)) {
-        throw new Error(fallbackError.message);
-      }
-
-      asset = fallbackAsset;
-    } else if (!/relation .*media_assets|schema cache|does not exist/i.test(assetError.message)) {
-      throw new Error(assetError.message);
-    }
-  }
-
-  return {
-    id: asset?.id,
-    url: data.publicUrl,
-    mediaType,
-    mimeType: file.type,
-    sizeBytes: file.size,
-    storageBucket: MEDIA_BUCKET,
-    storagePath: filePath,
-  };
+  return body;
 }

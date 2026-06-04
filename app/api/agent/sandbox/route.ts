@@ -10,10 +10,6 @@ import {
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
 export async function POST(request: NextRequest) {
-  if (!process.env.API_KEY_21ST) {
-    return NextResponse.json({ error: "API_KEY_21ST missing" }, { status: 500 });
-  }
-
   try {
     const client = createServerSupabaseClient();
     const user = await requireAuthenticatedUser(client, request);
@@ -25,6 +21,13 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const safe = toSafeError(error);
     return NextResponse.json(safe, { status: safe.status });
+  }
+
+  if (!process.env.API_KEY_21ST) {
+    return NextResponse.json(
+      { error: "Agent sandbox provider is not configured.", code: "agent_not_configured" },
+      { status: 503 },
+    );
   }
 
   try {

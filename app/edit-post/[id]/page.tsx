@@ -1,5 +1,5 @@
 import AppShell from "@/components/app-shell/AppShell";
-import PostComposerForm from "@/components/posts/PostComposerForm";
+import Create from "@/components/copied-ui/pages/Create";
 
 export default async function EditPostPage({
   params,
@@ -10,7 +10,7 @@ export default async function EditPostPage({
 
   return (
     <AppShell>
-      <PostComposerForm postId={id} />
+      <Create postId={id} />
     </AppShell>
   );
 }
