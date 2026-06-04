@@ -1,27 +1,25 @@
 # AutoPost Hub Next Steps
 
-Last generated: 2026-05-26
+Last generated: 2026-06-04
 
 ## Recommended Slices In Order
 
 | Order | Slice | Priority | Owner | Model/reasoning | Expected commands |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Staging credential smoke: verify Supabase migrations, `post-images`, auth, autosave, media upload, scheduler/worker health. | P0 | Manual + Codex | Codex medium for scripting/reporting; manual for dashboards/secrets. | `npx supabase db push --linked`, `npm test`, `npm run lint`, `npm run build -- --webpack` |
-| 2 | Meta OAuth staging validation: connect Facebook Page and Instagram Business account, publish one image post, inspect attempts/audit logs. | P0 | Manual + Codex | Codex medium; manual Meta dashboard/account actions. | `npm test`, `npm run build -- --webpack`, credential-backed API/browser smoke |
-| 3 | Cron runner setup: configure authenticated scheduler and worker calls; confirm due posts and background jobs process safely. | P0 | Manual + Codex | Codex low/medium; manual hosting cron setup. | `curl` protected health/process endpoints, `npm test` |
-| 4 | CI/staging E2E activation: reuse the local E2E setup pattern with hosting secrets and a stable safe staging dataset. | P1 | Codex + Manual | Medium reasoning; manual for staging secrets. | `npm run setup:e2e`, `npm run test:e2e` locally; CI should provide `E2E_BASE_URL`, `E2E_EMAIL`, `E2E_PASSWORD`, `E2E_RUN_BROWSER=1` |
-| 5 | Production deployment readiness update: sync docs after staging validation, update stale blockers in production docs/checklists. | P1 | Codex | Low reasoning. | `npm test`, `npm run lint`, `npm run build -- --webpack` |
-| 6 | AI provider production validation: verify OpenRouter model allowlist, assistant route, content-score route, and fallback logs. | P1 | Codex | Medium reasoning. | `npm test`, authenticated API smoke for `/api/ai/assistant` and `/api/ai/content-score` |
-| 7 | 21st agent validation: configure 21st dashboard provider key for `my-agent`, reset chat, verify token/sandbox/thread routes. | P1 | Manual + Codex | Medium reasoning; manual dashboard/CLI credentials. | authenticated API smoke for `/api/an-token`, `/api/agent/sandbox`, `/api/agent/threads` |
-| 8 | Engagement inbox MVP: add reply/action workflow on top of existing thread/message model. | P2 | Codex or Cursor | High reasoning because it touches product/API/UI. | `npm test`, `npm run lint`, `npm run build -- --webpack`, targeted E2E |
-| 9 | Automation runner MVP: execute stored automation flows through background jobs with audit/retry semantics. | P2 | Codex | High reasoning. | `npm test`, `npm run lint`, `npm run build -- --webpack`, worker smoke |
-| 10 | Team management UI: invitations, member roles, permission views, admin flows. | P2 | Cursor for UI + Codex for backend hardening | Medium/high reasoning. | `npm test`, `npm run lint`, `npm run build -- --webpack`, RBAC E2E |
-| 11 | Advanced scheduling: recurring/smart scheduling and queue optimization. | P2 | Codex | High reasoning. | `npm test`, scheduler unit/E2E, `npm run build -- --webpack` |
-| 12 | TikTok provider implementation after API access is available. | P3 | Codex | High reasoning with provider docs. | provider-specific tests, `npm test`, `npm run lint`, `npm run build -- --webpack` |
+| 1 | Meta OAuth provider-success validation: connect Facebook Page and eligible Instagram Business/Creator account, publish one safe test image post, inspect attempts/audit logs. | P0 | Manual + Codex | Codex medium; manual Meta dashboard/account actions. | `npm test`, `npm run build -- --webpack`, credential-backed API/browser smoke |
+| 2 | External cron runner activation: configure authenticated scheduler and worker calls for the production URL if Vercel Hobby cron is insufficient. | P0 | Manual + Codex | Codex low/medium; manual hosting cron setup. | `SMOKE_BASE_URL=https://autopost-hub.vercel.app npm run smoke:cron` |
+| 3 | Full Google/GitHub consent completion: manually finish OAuth login with real accounts and verify dashboard session persistence. | P0 | Manual + Codex | Low reasoning; manual browser consent. | `SMOKE_BASE_URL=https://autopost-hub.vercel.app npm run smoke:auth` |
+| 4 | AI provider production validation: verify OpenRouter model allowlist, assistant route, content-score route, and heuristic fallback logs. | P1 | Codex | Medium reasoning. | `npm test`, authenticated API smoke for `/api/ai/assistant` and `/api/ai/content-score` |
+| 5 | 21st agent validation: configure 21st dashboard provider key for `my-agent`, reset chat, verify token/sandbox/thread routes. | P1 | Manual + Codex | Medium reasoning; manual dashboard/CLI credentials. | authenticated API smoke for `/api/an-token`, `/api/agent/sandbox`, `/api/agent/threads` |
+| 6 | Engagement inbox MVP: add reply/action workflow on top of existing thread/message model. | P2 | Codex or Cursor | High reasoning because it touches product/API/UI. | `npm test`, `npm run lint`, `npm run build -- --webpack`, targeted E2E |
+| 7 | Automation runner MVP: execute stored automation flows through background jobs with audit/retry semantics. | P2 | Codex | High reasoning. | `npm test`, `npm run lint`, `npm run build -- --webpack`, worker smoke |
+| 8 | Team management UI: invitations, member roles, permission views, admin flows. | P2 | Cursor for UI + Codex for backend hardening | Medium/high reasoning. | `npm test`, `npm run lint`, `npm run build -- --webpack`, RBAC E2E |
+| 9 | Advanced scheduling: recurring/smart scheduling and queue optimization. | P2 | Codex | High reasoning. | `npm test`, scheduler unit/E2E, `npm run build -- --webpack` |
+| 10 | TikTok provider implementation after API access is available. | P3 | Codex | High reasoning with provider docs. | provider-specific tests, `npm test`, `npm run lint`, `npm run build -- --webpack` |
 
 ## Immediate Best Next Slice
 
-Run a real provider-success staging smoke. Local browser/API E2E now passes with a generated Supabase E2E user; production confidence now depends on proving Meta OAuth/publishing, provider fetchable media, cron bearer auth, and AI/21st provider credentials against safe staging assets.
+Run a real Meta provider-success staging/production smoke. Production deploy, auth provider start, email login, cron dry-runs, linked migrations, and Playwright E2E are passing; remaining launch confidence depends on proving Meta OAuth/publishing with safe test social assets and provider-fetchable media.
 
 ## Standard Verification Commands
 

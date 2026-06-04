@@ -1,6 +1,6 @@
 # AutoPost Hub Implementation Status
 
-Last generated: 2026-05-26
+Last generated: 2026-06-04
 
 ## Fully Implemented
 
@@ -25,7 +25,7 @@ Last generated: 2026-05-26
 
 ## Partially Implemented
 
-- Browser/API E2E coverage is locally active after `npm run setup:e2e`; authenticated browser/API suite passes against a local production server.
+- Browser/API E2E coverage is active after `npm run setup:e2e`; authenticated browser/API suite passes against local production server and the production Vercel URL.
 - Analytics UI/aggregation is foundation-level; real provider metric sync is present but needs credential-backed staging validation.
 - AI product experience is connected but depends on valid provider keys for production-quality completions.
 - Brand brain and automation APIs persist basic records but do not yet include full product workflows/runners.
@@ -53,7 +53,7 @@ Last generated: 2026-05-26
 
 ## Needs Supabase Dashboard/CLI Setup
 
-- Apply all migrations in `supabase/migrations/`.
+- Apply all migrations in `supabase/migrations/`; linked production check on 2026-06-04 reported the remote database is up to date with `supabase@2.104.0`.
 - Confirm RLS policies are present after migration.
 - Confirm `post-images` bucket exists, is public, has 200 MB file limit, and allowed MIME types match `lib/validation/media.ts`.
 - Confirm storage policies from `202605260001_storage_post_images_bucket.sql` are applied.
@@ -74,6 +74,7 @@ Last generated: 2026-05-26
 - Configure all required env vars server-side in hosting.
 - Ensure no server secret uses `NEXT_PUBLIC_`.
 - Configure exact production `NEXT_PUBLIC_APP_URL` and `META_REDIRECT_URI`.
+- Production deploy is live at `https://autopost-hub.vercel.app` with Google/GitHub OAuth start smoke passing.
 - Use an external cron runner if hosting cron cannot send bearer headers.
 - Run credential-backed staging smoke for auth, channel connect, media upload, autosave, schedule, publish, worker, scheduler, AI.
 - Add error tracking/observability such as Sentry or equivalent.
@@ -81,16 +82,17 @@ Last generated: 2026-05-26
 ## Current Test/Build Status
 
 - `npm test`: passing 57/57 unit tests.
-- `npm run test:e2e`: passing 19/19 Playwright tests after `npm run setup:e2e`.
+- `npm run test:e2e`: passing 19/19 Playwright tests locally and against `https://autopost-hub.vercel.app` with configured E2E credentials.
 - `npm run lint`: passing.
 - `npm run build -- --webpack`: passing.
 - Local and production cron smoke checks passed for protected health/process authorization.
+- Production auth smoke passed with email/password login, Google OAuth start, GitHub OAuth start, safe callback errors, and protected redirect behavior.
 - Prior local smoke: protected health/cron auth, AI status no-secret exposure, analytics/autosave unauthorized behavior passed.
-- Supabase linked db push previously applied `202605260001_storage_post_images_bucket.sql` successfully.
+- Supabase linked db push with `supabase@2.104.0` reports the remote database is up to date.
 
 ## Current Known Blockers
 
-- Production/staging cannot be fully validated without real Supabase, Meta, OpenRouter, 21st, and cron credentials.
-- Provider-success publishing E2E requires real Meta sandbox/test accounts, eligible Facebook/Instagram assets, and approved provider access where applicable.
+- Provider-success publishing E2E still requires a safe Meta sandbox/test account, eligible Facebook/Instagram assets, and approved provider access where applicable.
+- Real Google/GitHub OAuth completion has been smoke-tested only to provider start plus email/password production login; full external-provider account consent remains a manual browser check.
 - TikTok publishing is not implemented.
 - Full automation runner, engagement reply workflow, advanced team management, and recurring/smart scheduling remain future slices.

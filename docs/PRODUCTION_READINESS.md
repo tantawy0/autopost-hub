@@ -1,6 +1,6 @@
 # Production Readiness Audit
 
-Last audited: 2026-06-02
+Last audited: 2026-06-04
 
 ## Summary
 
@@ -135,6 +135,43 @@ This verifies protected-route redirects, safe `/auth/callback` provider-error
 handling, and Google/GitHub OAuth start behavior without printing provider
 secrets.
 
+Latest production result on `https://autopost-hub.vercel.app`: passed public
+health, protected redirect preservation, safe callback errors, Google OAuth
+start, GitHub OAuth start, and email/password login with configured E2E
+credentials.
+
+## Production Cron Smoke
+
+Run before and after cron changes:
+
+```bash
+SMOKE_BASE_URL=https://autopost-hub.vercel.app npm run smoke:cron
+```
+
+Latest production result on `https://autopost-hub.vercel.app`: passed public
+health, worker/scheduler missing-secret rejection, invalid-secret rejection,
+Vercel cron bridge protection, worker dry-run, and scheduler dry-run.
+
+## Production E2E Smoke
+
+Run with production-safe E2E credentials:
+
+```bash
+E2E_BASE_URL=https://autopost-hub.vercel.app E2E_RUN_BROWSER=1 E2E_START_SERVER=0 npm run test:e2e
+```
+
+Latest production result: 19/19 Playwright tests passed. This suite covers auth,
+app shell, channels, composer validation, dashboard isolation, media guidance,
+published/queue/calendar views, and protected API rejection. It does not publish
+real posts.
+
+## Supabase Migration Check
+
+Latest linked migration check: local and remote migration versions match, and
+`npx supabase@2.104.0 db push --linked` reports the remote database is up to
+date. On Windows, older Supabase CLI builds can crash with a JSON EOF error
+during `db push`; use `supabase@2.104.0` or newer if that appears.
+
 ## Secret Exposure Audit
 
 Confirmed:
@@ -146,13 +183,9 @@ Confirmed:
 
 ## Remaining Production Blockers
 
-1. Configure real Supabase project, anon key, and service-role key in hosting.
-2. Apply/verify all Supabase migrations in production.
-3. Verify `post-images` bucket and storage policies after migration apply.
-4. Configure Meta OAuth production app, redirect URI, scopes, and app review as needed.
-5. Configure `CRON_SECRET` and external cron runner with bearer auth.
-6. Configure stable `TOKEN_ENCRYPTION_KEY` before connecting real accounts.
-7. Configure OpenRouter key for production AI behavior.
-8. Configure `API_KEY_21ST` locally/server-side and provider env vars for deployed 21st `my-agent`.
-9. Run at least one credential-backed E2E smoke on production or staging.
-10. Enable leaked-password protection in Supabase Auth dashboard settings.
+1. Complete one manual Google and GitHub consent flow in a real browser to verify full external-provider account login, not only provider start.
+2. Configure Meta OAuth production app, redirect URI, scopes, and app review as needed.
+3. Run a safe Meta provider-success publishing smoke with a test Facebook Page and eligible Instagram Business/Creator account.
+4. Configure an external cron runner for Hobby-plan Vercel deployments if minute-level cron is required.
+5. Configure OpenRouter and 21st provider keys only where needed for paid/provider-backed AI behavior.
+6. Enable leaked-password protection in Supabase Auth dashboard settings.
