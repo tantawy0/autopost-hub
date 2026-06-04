@@ -21,6 +21,13 @@ export default function DataDeletionPage() {
           ],
         },
         {
+          title: "Meta data deletion callback",
+          paragraphs: [
+            "If you remove AutoPost Hub from your Meta account, Meta can notify AutoPost Hub through the platform data deletion callback. The callback disconnects matching Facebook and Instagram channels, clears stored provider tokens, removes imported Meta social data, and returns a confirmation code.",
+            "Meta dashboard callback URL: https://autopost-hub.vercel.app/api/meta/data-deletion",
+          ],
+        },
+        {
           title: "Processing time",
           paragraphs: [
             "Verified deletion requests are processed as soon as reasonably possible. Some audit records may be retained only when required for security or legal compliance.",

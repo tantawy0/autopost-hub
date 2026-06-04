@@ -3,6 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   exchangeCodeForMetaToken,
   exchangeForLongLivedMetaToken,
+  getMetaScopes,
+  getMetaUserProfile,
+  hashMetaProviderUserId,
   listMetaDestinations,
   MetaProviderError,
   safeMetaErrorCode,
@@ -49,6 +52,8 @@ export async function GET(request: NextRequest) {
     const payload = verifyMetaState(state);
     const shortLivedToken = await exchangeCodeForMetaToken(code, appUrl);
     const token = await exchangeForLongLivedMetaToken(shortLivedToken);
+    const metaUser = await getMetaUserProfile(token);
+    const providerUserIdHash = metaUser?.id ? hashMetaProviderUserId(metaUser.id) : null;
     const discoveredDestinations = await listMetaDestinations(token);
     const discovery = summarizeMetaDestinationDiscovery(discoveredDestinations, payload.platform);
     const destinations = discoveredDestinations.filter((destination) => {
@@ -100,6 +105,12 @@ export async function GET(request: NextRequest) {
       access_token: null,
       token_ciphertext: encryptOAuthToken(destination.accessToken),
       token_expires_at: destination.tokenExpiresAt ?? null,
+      token_scopes: getMetaScopes(),
+      provider_user_id_hash: providerUserIdHash,
+      provider_metadata: {
+        connected_via: payload.platform,
+        meta_user_name: metaUser?.name ?? null,
+      },
       status: "Connected",
       reconnect_required: false,
       updated_at: new Date().toISOString(),

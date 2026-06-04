@@ -34,7 +34,7 @@ class FakeQuery {
   private filters: Filter[] = [];
   private selectedColumns: string | null = null;
   private limitCount: number | null = null;
-  private operation: "select" | "insert" | "update" | "upsert" = "select";
+  private operation: "select" | "delete" | "insert" | "update" | "upsert" = "select";
   private payload: Row[] | Row | null = null;
   private conflictColumns: string[] = [];
 
@@ -97,6 +97,11 @@ class FakeQuery {
   update(row: Row) {
     this.operation = "update";
     this.payload = row;
+    return this;
+  }
+
+  delete() {
+    this.operation = "delete";
     return this;
   }
 
@@ -178,6 +183,13 @@ class FakeQuery {
         return next;
       });
       return { data: this.projectRows(updated), error: null };
+    }
+
+    if (this.operation === "delete") {
+      const deleted = this.tables[this.table].filter((row) => matchesFilters(row, this.filters));
+      this.tables[this.table] = this.tables[this.table].filter((row) => !matchesFilters(row, this.filters));
+
+      return { data: this.projectRows(deleted), error: null };
     }
 
     const rows = this.tables[this.table].filter((row) => matchesFilters(row, this.filters));

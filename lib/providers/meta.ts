@@ -28,6 +28,11 @@ export interface MetaTokenResponse {
   expires_in?: number;
 }
 
+export interface MetaUserProfile {
+  id: string;
+  name?: string;
+}
+
 export interface MetaAccountDestination {
   platform: "Facebook" | "Instagram";
   accountName: string;
@@ -45,6 +50,13 @@ export class MetaProviderError extends Error {
   ) {
     super(message);
     this.name = "MetaProviderError";
+  }
+}
+
+export class MetaSignedRequestError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "MetaSignedRequestError";
   }
 }
 
@@ -101,6 +113,13 @@ function decodeBase64Url(value: string): string {
   return new TextDecoder().decode(bytes);
 }
 
+function decodeBase64UrlBytes(value: string): Buffer {
+  const normalized = value.replaceAll("-", "+").replaceAll("_", "/");
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+
+  return Buffer.from(padded, "base64");
+}
+
 export function signMetaState(payload: MetaStatePayload): string {
   const encoded = base64Url(JSON.stringify(payload));
   const signature = crypto.createHmac("sha256", getMetaSecret()).update(encoded).digest();
@@ -124,6 +143,35 @@ export function verifyMetaState(state: string): MetaStatePayload {
   }
 
   return JSON.parse(decodeBase64Url(encoded)) as MetaStatePayload;
+}
+
+export function verifyMetaSignedRequest<T extends Record<string, unknown>>(signedRequest: string): T {
+  const [encodedSignature, encodedPayload] = signedRequest.split(".");
+
+  if (!encodedSignature || !encodedPayload) {
+    throw new MetaSignedRequestError("Invalid Meta signed request.");
+  }
+
+  const appSecret = getMetaSecret();
+  const signature = decodeBase64UrlBytes(encodedSignature);
+  const expected = crypto.createHmac("sha256", appSecret).update(encodedPayload).digest();
+
+  if (signature.length !== expected.length || !crypto.timingSafeEqual(signature, expected)) {
+    throw new MetaSignedRequestError("Invalid Meta signed request signature.");
+  }
+
+  const payload = JSON.parse(decodeBase64Url(encodedPayload)) as T;
+  const algorithm = String(payload.algorithm ?? "").toUpperCase();
+
+  if (algorithm && algorithm !== "HMAC-SHA256") {
+    throw new MetaSignedRequestError("Unsupported Meta signed request algorithm.");
+  }
+
+  return payload;
+}
+
+export function hashMetaProviderUserId(providerUserId: string): string {
+  return crypto.createHash("sha256").update(providerUserId).digest("hex");
 }
 
 export function buildMetaAuthorizationUrl(payload: MetaStatePayload, appUrl = getAppUrl()): string {
@@ -199,6 +247,23 @@ export async function exchangeForLongLivedMetaToken(
   }
 
   return (await response.json()) as MetaTokenResponse;
+}
+
+export async function getMetaUserProfile(token: MetaTokenResponse): Promise<MetaUserProfile | null> {
+  const response = await fetch(
+    `${getMetaGraphBaseUrl()}/me?fields=id,name&access_token=${encodeURIComponent(token.access_token)}`,
+  );
+
+  if (!response.ok) return null;
+
+  const body = (await response.json()) as Partial<MetaUserProfile>;
+
+  if (!body.id) return null;
+
+  return {
+    id: body.id,
+    name: body.name,
+  };
 }
 
 export async function listMetaDestinations(

@@ -35,7 +35,11 @@ Last audited: 2026-06-02
 - [ ] Set `META_APP_SECRET`.
 - [ ] Set `META_REDIRECT_URI=https://<production-domain>/api/meta/callback`.
 - [ ] Add exact callback URL in Meta app settings.
+- [ ] Add data deletion callback URL: `https://<production-domain>/api/meta/data-deletion`.
+- [ ] Add public data deletion instructions URL: `https://<production-domain>/data-deletion`.
 - [ ] Configure requested scopes.
+- [ ] Prepare reviewer test user, test Facebook Page, and linked Instagram Business/Creator account.
+- [ ] Record App Review screencast using `docs/META_APP_REVIEW.md`.
 - [ ] Complete Meta app review for production scopes if required.
 - [ ] Connect one Facebook Page and one Instagram Business/Creator account in staging/production.
 

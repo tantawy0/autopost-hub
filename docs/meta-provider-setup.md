@@ -19,10 +19,16 @@ Business accounts for this release. TikTok remains a visible placeholder.
    use `https://autopost-hub.vercel.app/privacy`,
    `https://autopost-hub.vercel.app/terms`, and
    `https://autopost-hub.vercel.app/data-deletion` for the public policy links.
-5. Configure the app with test users that own or manage eligible Facebook Pages.
-6. Confirm the test Pages are linked to Instagram Business accounts when testing
+5. Configure **User Data Deletion** with:
+
+   ```text
+   https://autopost-hub.vercel.app/api/meta/data-deletion
+   ```
+
+6. Configure the app with test users that own or manage eligible Facebook Pages.
+7. Confirm the test Pages are linked to Instagram Business accounts when testing
    Instagram publishing.
-7. Request or enable these permissions for testers:
+8. Request or enable these permissions for testers:
    - `pages_show_list`
    - `pages_read_engagement`
    - `pages_manage_posts`
@@ -65,3 +71,9 @@ to verify non-secret setup state:
 Use `GET /api/meta/diagnostics?live=1` only during staging smoke tests. It checks the
 current Meta Graph connection for linked Instagram accounts using stored encrypted Page
 tokens, and returns only safe booleans/counts.
+
+## App Review Pack
+
+Use `docs/META_APP_REVIEW.md` as the submission checklist for permission
+justifications, screencast script, policy URLs, data deletion callback behavior,
+and manual reviewer test account requirements.
