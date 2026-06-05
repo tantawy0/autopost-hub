@@ -45,6 +45,10 @@ export interface ConnectedAccountDTO {
   id: string;
   platform: Platform;
   accountName: string;
+  accountId?: string | null;
+  pageId?: string | null;
+  instagramBusinessAccountId?: string | null;
+  providerMetadata?: Record<string, unknown> | null;
   status: ConnectedAccountStatus;
   reconnectRequired: boolean;
   publishCapable: boolean;

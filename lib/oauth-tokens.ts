@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { decryptSecret, encryptSecret } from "@/lib/server/secrets";
 import { exchangeForLongLivedMetaToken } from "@/lib/providers/meta";
+import { refreshLongLivedInstagramToken } from "@/lib/providers/instagram-login";
 import { PublishingException, PublishErrorCode } from "@/lib/publishing-errors";
 import { writeAuditLog } from "@/lib/server/audit";
 
@@ -17,6 +18,7 @@ export type TokenAccountRow = {
   token_ciphertext?: string | null;
   refresh_token_ciphertext?: string | null;
   token_expires_at?: string | null;
+  provider_metadata?: Record<string, unknown> | null;
 };
 
 export function encryptOAuthToken(value: string | null | undefined): string | null {
@@ -102,7 +104,11 @@ export async function refreshAccountTokenIfNeeded<T extends TokenAccountRow>(
   }
 
   try {
-    const refreshed = await exchangeForLongLivedMetaToken({ access_token: currentAccessToken });
+    const connectedVia = String(account.provider_metadata?.connected_via ?? "");
+    const refreshed =
+      account.platform === "Instagram" && connectedVia === "instagram_login"
+        ? await refreshLongLivedInstagramToken(currentAccessToken)
+        : await exchangeForLongLivedMetaToken({ access_token: currentAccessToken });
     const expiresAt =
       refreshed.expires_in && refreshed.expires_in > 0
         ? new Date(Date.now() + refreshed.expires_in * 1000).toISOString()

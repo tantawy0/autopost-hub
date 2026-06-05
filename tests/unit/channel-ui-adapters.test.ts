@@ -18,5 +18,8 @@ test("channel UI marks reconnect-required accounts as errors even if provider st
 
   assert.equal(uiChannel.status, "error");
   assert.equal(uiChannel.tokenHealth, 0);
-  assert.equal(uiChannel.permissions.find((permission) => permission.name === "Publish posts")?.granted, false);
+  assert.equal(
+    uiChannel.permissions.find((permission) => /publish|manage/i.test(permission.name))?.granted,
+    false,
+  );
 });

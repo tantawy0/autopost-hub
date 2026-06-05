@@ -10,6 +10,7 @@ import { enqueueSocialSyncJob } from "@/lib/server/jobs/enqueue";
 import { ingestPostMetricSnapshots } from "@/lib/server/services/analytics-post-metrics";
 import { refreshAccountTokenIfNeeded } from "@/lib/oauth-tokens";
 import { getMetaGraphVersion } from "@/lib/providers/meta";
+import { getInstagramApiVersion } from "@/lib/providers/instagram-login";
 import { assertRateLimit, getRateLimitKey } from "@/lib/server/rate-limit";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
@@ -23,6 +24,7 @@ type AccountRow = {
   access_token?: string | null;
   token_ciphertext?: string | null;
   token_expires_at?: string | null;
+  provider_metadata?: Record<string, unknown> | null;
   workspace_id?: string | null;
 };
 
@@ -30,6 +32,12 @@ type GraphItem = Record<string, unknown> & { id: string };
 
 function graphBase() {
   return `https://graph.facebook.com/${getMetaGraphVersion()}`;
+}
+
+function instagramGraphBase(account: AccountRow) {
+  return account.provider_metadata?.connected_via === "instagram_login"
+    ? `https://graph.instagram.com/${getInstagramApiVersion()}`
+    : graphBase();
 }
 
 function numberValue(value: unknown): number | null {
@@ -66,9 +74,9 @@ async function fetchAllPages(url: string, max = 250): Promise<GraphItem[]> {
   return items.slice(0, max);
 }
 
-async function fetchInsights(nodeId: string, token: string, metrics: string[]) {
+async function fetchInsights(nodeId: string, token: string, metrics: string[], baseUrl = graphBase()) {
   const values: Record<string, number> = {};
-  const url = `${graphBase()}/${nodeId}/insights?metric=${metrics.join(",")}&access_token=${encodeURIComponent(token)}`;
+  const url = `${baseUrl}/${nodeId}/insights?metric=${metrics.join(",")}&access_token=${encodeURIComponent(token)}`;
 
   try {
     const body = await fetchJson(url);
@@ -156,8 +164,9 @@ async function buildFacebookRows(account: AccountRow & { access_token: string },
 async function buildInstagramRows(account: AccountRow & { access_token: string }, userId: string) {
   const igUserId = account.instagram_business_account_id ?? account.account_id;
   const fields = "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count";
+  const baseUrl = instagramGraphBase(account);
   const posts = await fetchAllPages(
-    `${graphBase()}/${igUserId}/media?fields=${fields}&limit=100&access_token=${encodeURIComponent(account.access_token)}`,
+    `${baseUrl}/${igUserId}/media?fields=${fields}&limit=100&access_token=${encodeURIComponent(account.access_token)}`,
   );
 
   return Promise.all(posts.map(async (post) => {
@@ -168,7 +177,7 @@ async function buildInstagramRows(account: AccountRow & { access_token: string }
       "shares",
       "follows",
       "total_interactions",
-    ]);
+    ], baseUrl);
     const reactions = numberValue(post.like_count);
     const comments = numberValue(post.comments_count);
     const views = insights.views ?? null;
@@ -248,7 +257,7 @@ export async function POST(request: NextRequest) {
 
     const { data: account, error: accountError } = await client
       .from("connected_accounts")
-      .select("id, workspace_id, platform, account_name, account_id, page_id, instagram_business_account_id, access_token, token_ciphertext, token_expires_at")
+      .select("id, workspace_id, platform, account_name, account_id, page_id, instagram_business_account_id, access_token, token_ciphertext, token_expires_at, provider_metadata")
       .eq("id", body.connectedAccountId)
       .eq("user_id", user.id)
       .in("platform", ["Facebook", "Instagram"])

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
-import { LayoutDashboard, CalendarDays, PenSquare, BarChart3, Sparkles, Images, Settings } from "lucide-react";
+import { LayoutDashboard, CalendarDays, PenSquare, BarChart3, Sparkles, Images, Settings, PanelsTopLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Dock } from "@/components/copied-ui/effects/Dock";
 
@@ -12,6 +12,7 @@ const dockItems = [
   { to: "/create", label: "Create", icon: PenSquare },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/pages", label: "Pages", icon: PanelsTopLeft },
   { to: "/ai-agent", label: "AI Assistant", icon: Sparkles },
   { to: "/media", label: "Media", icon: Images },
   { to: "/settings", label: "Settings", icon: Settings },
@@ -22,7 +23,7 @@ const mobileNav = [
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/create", label: "Create", icon: PenSquare },
   { to: "/analytics", label: "Stats", icon: BarChart3 },
-  { to: "/ai-agent", label: "AI", icon: Sparkles },
+  { to: "/pages", label: "Pages", icon: PanelsTopLeft },
 ];
 
 export function CopiedAppShell({ children, onLogout }: { children: React.ReactNode; onLogout: () => void }) {

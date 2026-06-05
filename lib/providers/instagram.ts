@@ -3,8 +3,15 @@ import "server-only";
 import type { MediaAssetDTO } from "@/lib/types";
 import type { ProviderPublishInput, ProviderPublishResult } from "@/lib/providers/facebook";
 import { getMetaGraphVersion } from "@/lib/providers/meta";
+import { getInstagramApiVersion } from "@/lib/providers/instagram-login";
 import { PublishingException, PublishErrorCode } from "@/lib/publishing-errors";
 import { generateProviderIdempotencyKey, extractMetaPostId } from "@/lib/publish-idempotency";
+
+function getInstagramGraphBaseUrl(authSurface: "facebook_login" | "instagram_login") {
+  return authSurface === "instagram_login"
+    ? `https://graph.instagram.com/${getInstagramApiVersion()}`
+    : `https://graph.facebook.com/${getMetaGraphVersion()}`;
+}
 
 /**
  * Parse Meta API error response
@@ -80,6 +87,7 @@ async function createInstagramContainer(
   caption: string,
   media: MediaAssetDTO[],
   idempotencyKey: string,
+  authSurface: "facebook_login" | "instagram_login" = "facebook_login",
 ) {
   const firstMedia = media[0];
   const body = new URLSearchParams({
@@ -110,7 +118,7 @@ async function createInstagramContainer(
 
   try {
     const response = await fetch(
-      `https://graph.facebook.com/${getMetaGraphVersion()}/${businessAccountId}/media`,
+      `${getInstagramGraphBaseUrl(authSurface)}/${businessAccountId}/media`,
       {
         method: "POST",
         body,
@@ -161,13 +169,14 @@ async function waitForInstagramContainer(
   accessToken: string,
   creationId: string,
   timeoutSeconds: number = 8,
+  authSurface: "facebook_login" | "instagram_login" = "facebook_login",
 ) {
   const maxAttempts = timeoutSeconds;
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     try {
       const response = await fetch(
-        `https://graph.facebook.com/${getMetaGraphVersion()}/${creationId}?fields=status_code&access_token=${encodeURIComponent(
+        `${getInstagramGraphBaseUrl(authSurface)}/${creationId}?fields=status_code&access_token=${encodeURIComponent(
           accessToken,
         )}`,
       );
@@ -233,6 +242,7 @@ async function addInstagramFirstComment(
   mediaId: string | null | undefined,
   accessToken: string,
   firstComment: string | null | undefined,
+  authSurface: "facebook_login" | "instagram_login" = "facebook_login",
 ): Promise<string | null> {
   const message = firstComment?.trim();
 
@@ -246,7 +256,7 @@ async function addInstagramFirstComment(
       message,
     });
     const response = await fetch(
-      `https://graph.facebook.com/${getMetaGraphVersion()}/${mediaId}/comments`,
+      `${getInstagramGraphBaseUrl(authSurface)}/${mediaId}/comments`,
       {
         method: "POST",
         body,
@@ -268,7 +278,10 @@ async function addInstagramFirstComment(
 }
 
 export async function publishInstagramBusinessPost(
-  input: ProviderPublishInput & { instagramBusinessAccountId?: string | null },
+  input: ProviderPublishInput & {
+    instagramBusinessAccountId?: string | null;
+    authSurface?: "facebook_login" | "instagram_login";
+  },
 ): Promise<ProviderPublishResult> {
   if (!input.instagramBusinessAccountId || !input.accessToken) {
     throw new PublishingException(
@@ -312,6 +325,7 @@ export async function publishInstagramBusinessPost(
 
   try {
     const idempotencyKey = input.idempotencyKey ?? generateProviderIdempotencyKey();
+    const authSurface = input.authSurface ?? "facebook_login";
 
     const container = await createInstagramContainer(
       input.instagramBusinessAccountId,
@@ -319,6 +333,7 @@ export async function publishInstagramBusinessPost(
       input.caption,
       input.media,
       idempotencyKey,
+      authSurface,
     );
 
     await waitForInstagramContainer(
@@ -326,6 +341,7 @@ export async function publishInstagramBusinessPost(
       input.accessToken,
       container.id,
       8,
+      authSurface,
     );
 
     const body = new URLSearchParams({
@@ -335,7 +351,7 @@ export async function publishInstagramBusinessPost(
     });
 
     const response = await fetch(
-      `https://graph.facebook.com/${getMetaGraphVersion()}/${input.instagramBusinessAccountId}/media_publish`,
+      `${getInstagramGraphBaseUrl(authSurface)}/${input.instagramBusinessAccountId}/media_publish`,
       {
         method: "POST",
         body,
@@ -369,6 +385,7 @@ export async function publishInstagramBusinessPost(
       providerPostId,
       input.accessToken,
       input.firstComment,
+      authSurface,
     );
 
     return {

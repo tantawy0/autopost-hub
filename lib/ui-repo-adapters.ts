@@ -72,6 +72,26 @@ export function toUiImportedPost(post: SocialPostDTO): UiPost {
 
 export function toUiChannel(account: ConnectedAccountDTO): UiChannel {
   const status = account.reconnectRequired ? "error" : account.status === "Connected" ? "healthy" : "warning";
+  const connectedVia = String(account.providerMetadata?.connected_via ?? "");
+  const permissions =
+    account.platform === "Facebook"
+      ? [
+          { name: "Manage Page posts", granted: account.publishCapable },
+          { name: "Read Page analytics", granted: account.status === "Connected" },
+        ]
+      : account.platform === "Instagram"
+        ? [
+            {
+              name: connectedVia === "instagram_login" ? "Instagram Login" : "Linked Page access",
+              granted: account.status === "Connected",
+            },
+            { name: "Publish media", granted: account.publishCapable },
+          ]
+        : [
+            { name: "Publish posts", granted: account.publishCapable },
+            { name: "Read analytics", granted: account.status === "Connected" },
+          ];
+
   return {
     id: account.id,
     platform: toUiPlatform(account.platform),
@@ -80,10 +100,7 @@ export function toUiChannel(account: ConnectedAccountDTO): UiChannel {
     followers: 0,
     lastSync: "Live",
     tokenHealth: status === "healthy" ? 100 : 0,
-    permissions: [
-      { name: "Publish posts", granted: account.publishCapable },
-      { name: "Read analytics", granted: account.status === "Connected" },
-    ],
+    permissions,
     missingPermission: account.publishCapable ? undefined : "Reconnect required",
     source: account,
   };

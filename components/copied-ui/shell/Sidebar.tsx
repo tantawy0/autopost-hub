@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, PenSquare, CalendarDays, ListChecks, Send, BarChart3,
-  Plug, Sparkles, Images, Settings, ChevronsUpDown, Check, LogOut,
+  Plug, Sparkles, Images, Settings, ChevronsUpDown, Check, LogOut, PanelsTopLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "../Logo";
@@ -19,6 +19,7 @@ const nav = [
   { to: "/published", label: "Published", icon: Send },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/channels", label: "Channels", icon: Plug },
+  { to: "/pages", label: "Pages", icon: PanelsTopLeft },
   { to: "/ai-agent", label: "AI Assistant", icon: Sparkles },
   { to: "/media", label: "Media Library", icon: Images },
   { to: "/settings", label: "Settings", icon: Settings },

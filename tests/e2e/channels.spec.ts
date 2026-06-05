@@ -18,7 +18,7 @@ test.describe("channels", () => {
   test("starts channel OAuth from the copied UI connect action", async ({ page }) => {
     const callbackUrl = `${process.env.E2E_BASE_URL ?? "http://127.0.0.1:3137"}/channels?connected=instagram`;
 
-    await page.route(/\/api\/meta\/login\?platform=instagram&returnTo=\/channels$/, async (route) => {
+    await page.route(/\/api\/instagram\/login\?returnTo=\/channels$/, async (route) => {
       await route.fulfill({
         contentType: "application/json",
         body: JSON.stringify({ url: callbackUrl }),
@@ -27,7 +27,7 @@ test.describe("channels", () => {
 
     await signIn(page);
     await page.goto("/channels");
-    await page.getByRole("button", { name: /connect channel/i }).click();
+    await page.getByRole("button", { name: /connect instagram/i }).click();
     await page.waitForURL(callbackUrl);
   });
 });

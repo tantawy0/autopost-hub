@@ -159,6 +159,36 @@ const ENV_CHECKS: Array<Omit<EnvCheck, "configured">> = [
     purpose: "Override requested Meta OAuth scopes.",
   },
   {
+    key: "INSTAGRAM_APP_ID",
+    severity: "optional",
+    scope: "server",
+    purpose: "Standalone Instagram Login app id.",
+  },
+  {
+    key: "INSTAGRAM_APP_SECRET",
+    severity: "optional",
+    scope: "server",
+    purpose: "Standalone Instagram Login app secret.",
+  },
+  {
+    key: "INSTAGRAM_REDIRECT_URI",
+    severity: "optional",
+    scope: "server",
+    purpose: "Standalone Instagram Login callback URL.",
+  },
+  {
+    key: "INSTAGRAM_API_VERSION",
+    severity: "optional",
+    scope: "server",
+    purpose: "Override Instagram Graph API version.",
+  },
+  {
+    key: "INSTAGRAM_SCOPES",
+    severity: "optional",
+    scope: "server",
+    purpose: "Override standalone Instagram Login scopes.",
+  },
+  {
     key: "LINKEDIN_API_VERSION",
     severity: "optional",
     scope: "server",
@@ -266,6 +296,7 @@ export function validateProductionEnv(source: EnvSource = process.env) {
     "NEXT_PUBLIC_SUPABASE_URL",
     "NEXT_PUBLIC_APP_URL",
     "META_REDIRECT_URI",
+    "INSTAGRAM_REDIRECT_URI",
     "LINKEDIN_REDIRECT_URI",
     "OPENROUTER_BASE_URL",
   ]) {
@@ -278,6 +309,7 @@ export function validateProductionEnv(source: EnvSource = process.env) {
     ["TOKEN_ENCRYPTION_KEY", 32],
     ["SUPABASE_SERVICE_ROLE_KEY", 32],
     ["META_APP_SECRET", 16],
+    ["INSTAGRAM_APP_SECRET", 16],
     ["STRIPE_SECRET_KEY", 16],
     ["STRIPE_WEBHOOK_SECRET", 16],
   ] as const) {
@@ -307,9 +339,24 @@ export function validateProductionEnv(source: EnvSource = process.env) {
     addIssue("LINKEDIN_REDIRECT_URI", "redirect_uri_mismatch");
   }
 
+  const instagramRedirectUri = getValue(source, "INSTAGRAM_REDIRECT_URI");
+  if (
+    instagramRedirectUri &&
+    isHttpUrl(appUrl) &&
+    isHttpUrl(instagramRedirectUri) &&
+    normalizeUrl(instagramRedirectUri) !== `${normalizeUrl(appUrl)}/api/instagram/callback`
+  ) {
+    addIssue("INSTAGRAM_REDIRECT_URI", "redirect_uri_mismatch");
+  }
+
   const graphVersion = getValue(source, "META_GRAPH_VERSION");
   if (graphVersion && !/^v\d+\.\d+$/.test(graphVersion)) {
     addIssue("META_GRAPH_VERSION", "invalid_graph_version");
+  }
+
+  const instagramApiVersion = getValue(source, "INSTAGRAM_API_VERSION");
+  if (instagramApiVersion && !/^v\d+\.\d+$/.test(instagramApiVersion)) {
+    addIssue("INSTAGRAM_API_VERSION", "invalid_graph_version");
   }
 
   const provider = getValue(source, "AI_PRIMARY_PROVIDER");

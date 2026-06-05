@@ -36,6 +36,9 @@ Runtime validation lives in `lib/server/production-env.ts`.
 | `LINKEDIN_CLIENT_ID` | Server | LinkedIn OAuth | Recommended when enabling LinkedIn channel connection. |
 | `LINKEDIN_CLIENT_SECRET` | Server | LinkedIn OAuth | Server-only. Used for token exchange and OAuth state signing. |
 | `LINKEDIN_REDIRECT_URI` | Server | LinkedIn OAuth callback | Must exactly match the LinkedIn Developer Portal redirect URL. |
+| `INSTAGRAM_APP_ID` | Server | Standalone Instagram Login | Optional if sharing Meta app id; recommended for explicit Instagram Login setup. |
+| `INSTAGRAM_APP_SECRET` | Server | Standalone Instagram Login | Optional if sharing Meta app secret; server-only. |
+| `INSTAGRAM_REDIRECT_URI` | Server | Standalone Instagram Login callback | Must exactly match the Instagram product callback URL when enabled. |
 | `STRIPE_SECRET_KEY` | Server | Paid plans and Stripe Checkout | Required only when enabling paid plans. |
 | `STRIPE_WEBHOOK_SECRET` | Server | Stripe subscription lifecycle webhooks | Required only when enabling paid plans. |
 | `STRIPE_PRICE_CREATOR` | Server | Creator monthly plan checkout | Stripe recurring Price ID, not a product ID. |
@@ -48,6 +51,8 @@ Runtime validation lives in `lib/server/production-env.ts`.
 | --- | --- | --- |
 | `META_GRAPH_VERSION` | Server | Override Meta Graph API version. |
 | `META_SCOPES` | Server | Override requested Meta OAuth scopes. |
+| `INSTAGRAM_API_VERSION` | Server | Override Instagram Graph API version. |
+| `INSTAGRAM_SCOPES` | Server | Override standalone Instagram Login scopes. |
 | `LINKEDIN_API_VERSION` | Server | Override LinkedIn versioned REST API header. Defaults to `202605`. |
 | `LINKEDIN_SCOPES` | Server | Override LinkedIn OAuth scopes. Defaults to `openid,profile,email,w_member_social`. |
 | `OPENROUTER_BASE_URL` | Server | Override OpenRouter API base URL. |
@@ -106,6 +111,26 @@ LINKEDIN_API_VERSION=202605
 ```
 
 The current provider foundation supports OAuth member connection and text-only member posts. LinkedIn organization/page publishing and media publishing require the additional LinkedIn product permissions and asset upload flow.
+
+## Standalone Instagram Login
+
+The Channels page uses a separate Instagram Login route for the Instagram button:
+
+```bash
+INSTAGRAM_APP_ID=replace-with-instagram-app-id
+INSTAGRAM_APP_SECRET=replace-with-instagram-app-secret
+INSTAGRAM_REDIRECT_URI=https://autopost-hub.vercel.app/api/instagram/callback
+INSTAGRAM_SCOPES=instagram_business_basic,instagram_business_content_publish
+```
+
+Facebook Pages still use Meta/Facebook Login:
+
+```bash
+META_REDIRECT_URI=https://autopost-hub.vercel.app/api/meta/callback
+META_SCOPES=pages_show_list,pages_read_engagement,pages_manage_posts,instagram_basic,instagram_content_publish
+```
+
+Add both callback URLs in the Meta/Instagram dashboard. The Instagram flow requires a Business or Creator account. Facebook Page linking is still needed when using Page-backed Instagram discovery.
 
 ## Supabase Social Login
 

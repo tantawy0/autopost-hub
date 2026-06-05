@@ -11,6 +11,10 @@ type ConnectedAccountRow = {
   platform: string;
   account_name?: string | null;
   name?: string | null;
+  account_id?: string | null;
+  page_id?: string | null;
+  instagram_business_account_id?: string | null;
+  provider_metadata?: Record<string, unknown> | null;
   status?: string | null;
   reconnect_required?: boolean | null;
 };
@@ -18,21 +22,26 @@ type ConnectedAccountRow = {
 function toConnectedAccountDTO(row: ConnectedAccountRow): ConnectedAccountDTO {
   const platform = normalizePlatform(row.platform);
   const status = normalizeConnectedAccountStatus(row.status);
+  const reconnectRequired =
+    Boolean(row.reconnect_required) ||
+    status === "Expired" ||
+    status === "Revoked" ||
+    status === "Unauthorized";
 
   return {
     id: row.id,
     platform,
+    accountId: row.account_id ?? null,
+    pageId: row.page_id ?? null,
+    instagramBusinessAccountId: row.instagram_business_account_id ?? null,
+    providerMetadata: row.provider_metadata ?? null,
     accountName: row.account_name ?? row.name ?? `${platform} Account`,
     status,
-    reconnectRequired:
-      Boolean(row.reconnect_required) ||
-      status === "Expired" ||
-      status === "Revoked" ||
-      status === "Unauthorized",
+    reconnectRequired,
     publishCapable:
       platform !== "TikTok" &&
       status === "Connected" &&
-      !Boolean(row.reconnect_required),
+      !reconnectRequired,
   };
 }
 
@@ -54,7 +63,9 @@ export async function listConnectedAccounts(): Promise<ConnectedAccountDTO[]> {
   const user = await getClientUser();
   const { data, error } = await supabase
     .from("connected_accounts")
-    .select("id, platform, account_name, status, reconnect_required, created_at")
+    .select(
+      "id, platform, account_name, account_id, page_id, instagram_business_account_id, provider_metadata, status, reconnect_required, created_at",
+    )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 

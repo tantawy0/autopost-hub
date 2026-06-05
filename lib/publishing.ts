@@ -45,6 +45,7 @@ type AccountRow = {
   token_ciphertext?: string | null;
   status?: string | null;
   reconnect_required?: boolean | null;
+  provider_metadata?: Record<string, unknown> | null;
 };
 
 type MediaAssetRow = {
@@ -256,6 +257,7 @@ async function publishToAccount(
         idempotencyKey,
       });
     } else if (platform === "Instagram") {
+      const connectedVia = String(account.provider_metadata?.connected_via ?? "");
       providerResult = await publishInstagramBusinessPost({
         caption: post.caption ?? "",
         firstComment: post.first_comment,
@@ -264,6 +266,7 @@ async function publishToAccount(
         pageId: account.page_id,
         instagramBusinessAccountId:
           account.instagram_business_account_id ?? account.account_id,
+        authSurface: connectedVia === "instagram_login" ? "instagram_login" : "facebook_login",
         validateOnly,
         idempotencyKey,
       });

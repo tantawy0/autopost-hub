@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { refreshAccountTokenIfNeeded } from "@/lib/oauth-tokens";
 import { getMetaGraphVersion } from "@/lib/providers/meta";
+import { getInstagramApiVersion } from "@/lib/providers/instagram-login";
 import type { JobHandlerResult } from "@/lib/server/jobs/handlers/result";
 import type { BackgroundJobRow } from "@/lib/server/jobs/types";
 import { ingestPostMetricSnapshots } from "@/lib/server/services/analytics-post-metrics";
@@ -18,6 +19,7 @@ type AccountRow = {
   access_token?: string | null;
   token_ciphertext?: string | null;
   token_expires_at?: string | null;
+  provider_metadata?: Record<string, unknown> | null;
   workspace_id?: string | null;
   user_id?: string;
 };
@@ -26,6 +28,12 @@ type GraphItem = Record<string, unknown> & { id: string };
 
 function graphBase() {
   return `https://graph.facebook.com/${getMetaGraphVersion()}`;
+}
+
+function instagramGraphBase(account: AccountRow) {
+  return account.provider_metadata?.connected_via === "instagram_login"
+    ? `https://graph.instagram.com/${getInstagramApiVersion()}`
+    : graphBase();
 }
 
 async function fetchJson(url: string) {
@@ -112,7 +120,7 @@ async function buildInstagramRows(account: AccountRow & { access_token: string }
   const igUserId = account.instagram_business_account_id ?? account.account_id;
   const fields = "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count";
   const posts = await fetchAllPages(
-    `${graphBase()}/${igUserId}/media?fields=${fields}&limit=50&access_token=${encodeURIComponent(account.access_token)}`,
+    `${instagramGraphBase(account)}/${igUserId}/media?fields=${fields}&limit=50&access_token=${encodeURIComponent(account.access_token)}`,
   );
 
   return posts.map((post) => ({
@@ -152,7 +160,7 @@ export async function runSocialSyncJob(
   const { data: account, error: accountError } = await client
     .from("connected_accounts")
     .select(
-      "id, user_id, workspace_id, platform, account_name, account_id, page_id, instagram_business_account_id, access_token, token_ciphertext, token_expires_at",
+      "id, user_id, workspace_id, platform, account_name, account_id, page_id, instagram_business_account_id, access_token, token_ciphertext, token_expires_at, provider_metadata",
     )
     .eq("id", connectedAccountId)
     .eq("user_id", job.user_id)
