@@ -52,6 +52,10 @@ function getInstagramClientSecret(): string {
   return value;
 }
 
+export function getInstagramSignedRequestSecret(): string {
+  return getInstagramClientSecret();
+}
+
 function getInstagramRedirectUri(appUrl = getAppUrl()): string {
   return process.env.INSTAGRAM_REDIRECT_URI ?? `${appUrl}/api/instagram/callback`;
 }

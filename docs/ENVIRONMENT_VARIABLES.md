@@ -39,6 +39,7 @@ Runtime validation lives in `lib/server/production-env.ts`.
 | `INSTAGRAM_APP_ID` | Server | Standalone Instagram Login | Optional if sharing Meta app id; recommended for explicit Instagram Login setup. |
 | `INSTAGRAM_APP_SECRET` | Server | Standalone Instagram Login | Optional if sharing Meta app secret; server-only. |
 | `INSTAGRAM_REDIRECT_URI` | Server | Standalone Instagram Login callback | Must exactly match the Instagram product callback URL when enabled. |
+| `INSTAGRAM_WEBHOOK_VERIFY_TOKEN` | Server | Standalone Instagram Webhooks | Random server-only token used by `/api/instagram/webhook` verification. |
 | `STRIPE_SECRET_KEY` | Server | Paid plans and Stripe Checkout | Required only when enabling paid plans. |
 | `STRIPE_WEBHOOK_SECRET` | Server | Stripe subscription lifecycle webhooks | Required only when enabling paid plans. |
 | `STRIPE_PRICE_CREATOR` | Server | Creator monthly plan checkout | Stripe recurring Price ID, not a product ID. |
@@ -121,6 +122,7 @@ INSTAGRAM_APP_ID=replace-with-instagram-app-id
 INSTAGRAM_APP_SECRET=replace-with-instagram-app-secret
 INSTAGRAM_REDIRECT_URI=https://autopost-hub.vercel.app/api/instagram/callback
 INSTAGRAM_SCOPES=instagram_business_basic,instagram_business_content_publish
+INSTAGRAM_WEBHOOK_VERIFY_TOKEN=replace-with-long-random-token
 ```
 
 Facebook Pages still use Meta/Facebook Login:
@@ -130,7 +132,7 @@ META_REDIRECT_URI=https://autopost-hub.vercel.app/api/meta/callback
 META_SCOPES=pages_show_list,pages_read_engagement,pages_manage_posts,instagram_basic,instagram_content_publish
 ```
 
-Add both callback URLs in the Meta/Instagram dashboard. The Instagram flow requires a Business or Creator account. Facebook Page linking is still needed when using Page-backed Instagram discovery.
+Add both OAuth callback URLs in the Meta/Instagram dashboard. For Instagram Webhooks, set the callback URL to `https://autopost-hub.vercel.app/api/instagram/webhook` and use `INSTAGRAM_WEBHOOK_VERIFY_TOKEN` as the verify token. The Instagram flow requires a Business or Creator account. Facebook Page linking is still needed when using Page-backed Instagram discovery.
 
 ## Supabase Social Login
 

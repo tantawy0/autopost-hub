@@ -145,14 +145,16 @@ export function verifyMetaState(state: string): MetaStatePayload {
   return JSON.parse(decodeBase64Url(encoded)) as MetaStatePayload;
 }
 
-export function verifyMetaSignedRequest<T extends Record<string, unknown>>(signedRequest: string): T {
+export function verifyMetaSignedRequest<T extends Record<string, unknown>>(
+  signedRequest: string,
+  appSecret = getMetaSecret(),
+): T {
   const [encodedSignature, encodedPayload] = signedRequest.split(".");
 
   if (!encodedSignature || !encodedPayload) {
     throw new MetaSignedRequestError("Invalid Meta signed request.");
   }
 
-  const appSecret = getMetaSecret();
   const signature = decodeBase64UrlBytes(encodedSignature);
   const expected = crypto.createHmac("sha256", appSecret).update(encodedPayload).digest();
 

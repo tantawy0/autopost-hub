@@ -189,6 +189,12 @@ const ENV_CHECKS: Array<Omit<EnvCheck, "configured">> = [
     purpose: "Override standalone Instagram Login scopes.",
   },
   {
+    key: "INSTAGRAM_WEBHOOK_VERIFY_TOKEN",
+    severity: "optional",
+    scope: "server",
+    purpose: "Standalone Instagram webhook callback verification token.",
+  },
+  {
     key: "LINKEDIN_API_VERSION",
     severity: "optional",
     scope: "server",
@@ -310,6 +316,7 @@ export function validateProductionEnv(source: EnvSource = process.env) {
     ["SUPABASE_SERVICE_ROLE_KEY", 32],
     ["META_APP_SECRET", 16],
     ["INSTAGRAM_APP_SECRET", 16],
+    ["INSTAGRAM_WEBHOOK_VERIFY_TOKEN", 16],
     ["STRIPE_SECRET_KEY", 16],
     ["STRIPE_WEBHOOK_SECRET", 16],
   ] as const) {
