@@ -25,15 +25,33 @@ Business accounts for this release. TikTok remains a visible placeholder.
    https://autopost-hub.vercel.app/api/meta/data-deletion
    ```
 
-6. Configure the app with test users that own or manage eligible Facebook Pages.
-7. Confirm the test Pages are linked to Instagram Business accounts when testing
+6. In the Instagram product settings, configure:
+
+   ```text
+   OAuth redirect URI:
+   https://autopost-hub.vercel.app/api/instagram/callback
+
+   Webhook callback URL:
+   https://autopost-hub.vercel.app/api/instagram/webhook
+
+   Deauthorize callback URL:
+   https://autopost-hub.vercel.app/api/instagram/deauthorize
+
+   Data deletion callback URL:
+   https://autopost-hub.vercel.app/api/instagram/data-deletion
+   ```
+
+7. Configure the app with real dedicated test users that own or manage eligible Facebook Pages.
+8. Confirm the test Pages are linked to Instagram Business accounts when testing
    Instagram publishing.
-8. Request or enable these permissions for testers:
+9. Request or enable only the permissions currently implemented and shown in the review screencast:
    - `pages_show_list`
    - `pages_read_engagement`
    - `pages_manage_posts`
    - `instagram_basic`
    - `instagram_content_publish`
+   - `instagram_business_basic`
+   - `instagram_business_content_publish`
 
 If Meta shows **URL Blocked**, the redirect URI above is missing or not an exact
 match. If Meta shows **Invalid Scopes**, the app is missing the Facebook
@@ -41,6 +59,11 @@ Login/Pages/Instagram use cases or those permissions have not been enabled for
 the app/tester yet. While the app is in development mode, only app admins,
 developers, or testers can grant unreviewed permissions; public users require
 Advanced Access/App Review.
+
+Before App Review, make at least one successful API call for every requested
+advanced permission within the last 30 days, and record a 1080p screencast that
+shows a user granting and using each requested permission. Do not use fake
+Facebook accounts in reviewer instructions.
 
 ## Required Environment Variables
 

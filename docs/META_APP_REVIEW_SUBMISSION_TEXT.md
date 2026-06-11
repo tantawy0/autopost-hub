@@ -1,7 +1,8 @@
 # Meta App Review Submission Text
 
 Use this as copy/paste source in the Meta dashboard. Adjust only the reviewer
-test account details and screencast link.
+test account details, the test asset names, and the screencast link. Request
+only permissions shown in the screencast and used by the current production app.
 
 ## App Summary
 
@@ -15,10 +16,10 @@ disconnect channels or request data deletion.
 ## Reviewer Instructions
 
 1. Go to `https://autopost-hub.vercel.app/auth`.
-2. Sign in with the reviewer test account provided in the App Review notes.
+2. Sign in with the real dedicated reviewer/test account provided in the App Review notes.
 3. Open `Channels`.
-4. Click connect/reconnect for Facebook or Instagram.
-5. Complete Meta OAuth with a user that manages the test Facebook Page.
+4. Click connect/reconnect for Facebook Pages or Instagram, depending on the permission being reviewed.
+5. Complete Meta OAuth with a user that manages the dedicated test Facebook Page, or complete Instagram Login with the dedicated professional Instagram account.
 6. Confirm AutoPost Hub displays the connected Facebook Page.
 7. If the Page has a linked Instagram Business/Creator account, confirm AutoPost
    Hub displays the Instagram account.
@@ -73,6 +74,22 @@ schedule or publish. The app validates media before publishing and records
 publishing outcomes. AutoPost Hub does not publish Instagram content without the
 user creating or scheduling that content.
 
+## instagram_business_basic
+
+AutoPost Hub needs `instagram_business_basic` for the standalone Instagram Login
+flow. The app uses it to identify the professional Instagram account that the
+user explicitly connects from the Instagram OAuth screen and to display that
+account in the `Channels` page. The app does not use this permission for
+unconnected accounts or for unrelated account discovery.
+
+## instagram_business_content_publish
+
+AutoPost Hub needs `instagram_business_content_publish` for standalone
+Instagram publishing where Meta grants this flow. The user selects the connected
+professional Instagram account, writes the caption, attaches validated media,
+and chooses schedule or publish. AutoPost Hub stores encrypted tokens
+server-side and records publish status for the user's selected destination.
+
 ## Data Deletion
 
 User instructions:
@@ -85,6 +102,7 @@ Callback:
 
 ```text
 https://autopost-hub.vercel.app/api/meta/data-deletion
+https://autopost-hub.vercel.app/api/instagram/data-deletion
 ```
 
 When Meta sends a signed data deletion request, AutoPost Hub verifies the signed
@@ -99,6 +117,7 @@ The screencast should show only:
 - Login.
 - Channels connection.
 - Meta OAuth consent.
+- Instagram OAuth consent if standalone Instagram Login permissions are requested.
 - Connected Facebook Page/Instagram account appearing.
 - Creating a test post.
 - Scheduling or publishing the test post.
@@ -107,3 +126,6 @@ The screencast should show only:
 
 Do not show `.env.local`, Meta app secret, Supabase service role key, API keys,
 billing dashboards, or private user data.
+
+Do not submit with fake Facebook accounts, incomplete production flows, or
+permissions that are planned but not demonstrated in the screencast.

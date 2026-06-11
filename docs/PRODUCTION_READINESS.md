@@ -184,8 +184,9 @@ Confirmed:
 ## Remaining Production Blockers
 
 1. Complete one manual Google and GitHub consent flow in a real browser to verify full external-provider account login, not only provider start.
-2. Configure Meta OAuth production app, redirect URI, scopes, and app review as needed.
-3. Run a safe Meta provider-success publishing smoke with a test Facebook Page and eligible Instagram Business/Creator account.
-4. Configure an external cron runner for Hobby-plan Vercel deployments if minute-level cron is required.
-5. Configure OpenRouter and 21st provider keys only where needed for paid/provider-backed AI behavior.
-6. Enable leaked-password protection in Supabase Auth dashboard settings.
+2. Configure Meta/Facebook Login and Instagram Login production app settings, including OAuth, webhook, deauthorize, data deletion, app icon, privacy policy, terms, and app category.
+3. Run a safe Meta provider-success publishing smoke with a real dedicated test user, test Facebook Page, and eligible Instagram Business/Creator account.
+4. Before App Review, make one successful API call for each requested advanced permission within 30 days and record a 1080p screencast showing the user granting and using every requested permission.
+5. Configure an external cron runner for Hobby-plan Vercel deployments if minute-level cron is required.
+6. Configure OpenRouter and 21st provider keys only where needed for paid/provider-backed AI behavior.
+7. Enable leaked-password protection in Supabase Auth dashboard settings.

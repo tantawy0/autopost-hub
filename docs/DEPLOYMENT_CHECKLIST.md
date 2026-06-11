@@ -36,10 +36,17 @@ Last audited: 2026-06-02
 - [ ] Set `META_REDIRECT_URI=https://<production-domain>/api/meta/callback`.
 - [ ] Add exact callback URL in Meta app settings.
 - [ ] Add data deletion callback URL: `https://<production-domain>/api/meta/data-deletion`.
+- [ ] Set `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET`, `INSTAGRAM_REDIRECT_URI`, and `INSTAGRAM_WEBHOOK_VERIFY_TOKEN` if standalone Instagram Login is enabled.
+- [ ] Add Instagram OAuth callback URL: `https://<production-domain>/api/instagram/callback`.
+- [ ] Add Instagram webhook URL: `https://<production-domain>/api/instagram/webhook`.
+- [ ] Add Instagram deauthorize URL: `https://<production-domain>/api/instagram/deauthorize`.
+- [ ] Add Instagram data deletion URL: `https://<production-domain>/api/instagram/data-deletion`.
 - [ ] Add public data deletion instructions URL: `https://<production-domain>/data-deletion`.
-- [ ] Configure requested scopes.
-- [ ] Prepare reviewer test user, test Facebook Page, and linked Instagram Business/Creator account.
-- [ ] Record App Review screencast using `docs/META_APP_REVIEW.md`.
+- [ ] Upload a compliant 1024x1024 app icon in Meta Settings > Basic.
+- [ ] Configure only requested scopes that are implemented and shown in the review video.
+- [ ] Prepare a real dedicated reviewer/test user, test Facebook Page, and linked or standalone Instagram Business/Creator account.
+- [ ] Make at least one successful API call per requested advanced permission within 30 days before submission.
+- [ ] Record a 1080p App Review screencast using `docs/META_APP_REVIEW.md`.
 - [ ] Complete Meta app review for production scopes if required.
 - [ ] Connect one Facebook Page and one Instagram Business/Creator account in staging/production.
 
