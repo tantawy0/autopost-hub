@@ -9,9 +9,9 @@ test.describe("channels", () => {
     await signIn(page);
     await page.goto("/channels");
     await expect(page.getByRole("heading", { name: "Channels" })).toBeVisible();
-    await expect(page.getByText("Facebook")).toBeVisible();
-    await expect(page.getByText("Instagram")).toBeVisible();
-    await expect(page.getByText("TikTok")).toBeVisible();
+    await expect(page.getByRole("button", { name: /connect facebook page/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /connect instagram/i })).toBeVisible();
+    await expect(page.getByText("TikTok", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Disconnected").first()).toBeVisible();
   });
 

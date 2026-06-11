@@ -499,7 +499,7 @@ export async function deletePost(postId: string): Promise<void> {
   await recordActivity(user.id, "post.deleted", "Post deleted", {}, postId);
 }
 
-export async function publishPostClient(postId: string, destinations: ConnectedAccountDTO[]): Promise<void> {
+export async function publishPostClient(postId: string, destinations?: ConnectedAccountDTO[]): Promise<void> {
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -511,10 +511,10 @@ export async function publishPostClient(postId: string, destinations: ConnectedA
   }
 
   const destinationAccountIds = destinations
-    .filter((destination) => post.platforms.includes(destination.platform))
+    ?.filter((destination) => post.platforms.includes(destination.platform))
     .map((destination) => destination.id);
 
-  if (destinationAccountIds.length === 0) {
+  if (destinations && (!destinationAccountIds || destinationAccountIds.length === 0)) {
     throw new Error("No publish-ready destination matches this post's selected platforms.");
   }
 
@@ -524,9 +524,7 @@ export async function publishPostClient(postId: string, destinations: ConnectedA
       "Content-Type": "application/json",
       ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
     },
-    body: JSON.stringify({
-      destinationAccountIds,
-    }),
+    body: JSON.stringify(destinationAccountIds ? { destinationAccountIds } : {}),
   });
 
   if (!response.ok) {

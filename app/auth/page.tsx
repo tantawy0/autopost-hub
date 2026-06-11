@@ -19,6 +19,7 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<"google" | "github" | null>(null);
 
   useEffect(() => {
@@ -116,6 +117,26 @@ export default function AuthPage() {
     }
   };
 
+  const resetPassword = async () => {
+    if (!email) {
+      toast.error("Enter your email first");
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: buildAuthCallbackUrl(window.location.origin, "/settings"),
+      });
+      if (error) throw error;
+      toast.success("Password reset email sent");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to send reset email");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background text-foreground">
       <div className="relative flex flex-col px-6 py-8 lg:px-14">
@@ -143,7 +164,7 @@ export default function AuthPage() {
           <form onSubmit={(event) => { event.preventDefault(); void submit(); }} className="flex flex-col gap-3">
             <div className="relative"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><input aria-label="Email address" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@brand.com" className="h-11 w-full rounded-xl border border-border bg-secondary/40 pl-10 pr-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" /></div>
             <div className="relative"><Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><input aria-label="Password" type="password" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="**********" className="h-11 w-full rounded-xl border border-border bg-secondary/40 pl-10 pr-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40" /></div>
-            <div className="flex items-center justify-between text-xs"><label className="flex items-center gap-2 text-muted-foreground cursor-pointer"><input type="checkbox" className="accent-primary" /> Keep me signed in</label><a href="#" className="text-primary hover:underline">Forgot password?</a></div>
+            <div className="flex items-center justify-between text-xs"><label className="flex items-center gap-2 text-muted-foreground cursor-pointer"><input type="checkbox" className="accent-primary" /> Keep me signed in</label><button type="button" disabled={resetLoading} onClick={() => void resetPassword()} className="text-primary hover:underline disabled:opacity-60">{resetLoading ? "Sending..." : "Forgot password?"}</button></div>
             <Button type="submit" disabled={loading} className="h-11 w-full bg-gradient-primary text-primary-foreground shadow-glow hover:opacity-95">{loading ? "Please wait..." : mode === "login" ? "Continue to workspace" : "Create account"} <ArrowRight className="ml-1 h-4 w-4" /></Button>
           </form>
           <p className="mt-6 text-center text-xs text-muted-foreground">{mode === "login" ? "New to Auto Post Hub?" : "Already have an account?"} <button type="button" onClick={() => setMode((value) => value === "login" ? "register" : "login")} className="text-primary hover:underline">{mode === "login" ? "Create an account" : "Sign in"}</button></p>

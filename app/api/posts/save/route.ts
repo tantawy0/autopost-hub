@@ -24,6 +24,13 @@ function parseSavePostInput(body: unknown): SavePostInput {
     throw new ValidationError("Invalid media URL.");
   }
   if (!Array.isArray(input.platforms)) throw new ValidationError("Select at least one platform.");
+  if (
+    input.destinationAccountIds !== undefined &&
+    (!Array.isArray(input.destinationAccountIds) ||
+      input.destinationAccountIds.some((id) => typeof id !== "string"))
+  ) {
+    throw new ValidationError("Invalid publishing destination.");
+  }
   if (input.status !== "Draft" && input.status !== "Scheduled") {
     throw new ValidationError("Unsupported post status.");
   }
@@ -37,6 +44,7 @@ function parseSavePostInput(body: unknown): SavePostInput {
     firstComment: input.firstComment,
     imageUrl: input.imageUrl,
     platforms: input.platforms,
+    destinationAccountIds: input.destinationAccountIds,
     status: input.status,
     scheduledFor: input.scheduledFor,
     mediaAssets: Array.isArray(input.mediaAssets) ? input.mediaAssets : [],

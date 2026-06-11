@@ -33,6 +33,7 @@ export default function Media() {
     } catch (error) { toast.error(error instanceof Error ? error.message : "Upload failed"); }
   };
   const remove = async (asset: MediaAssetDTO) => {
+    if (!window.confirm("Delete this media asset?")) return;
     try { await deleteMediaAsset(asset); toast.success("Media deleted"); await load(); }
     catch (error) { toast.error(error instanceof Error ? error.message : "Unable to delete media"); }
   };
@@ -50,7 +51,7 @@ export default function Media() {
       </div>
       <div className="flex flex-wrap gap-2">
         <div className="relative flex-1 min-w-[200px]"><Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search assets..." className="h-10 w-full rounded-xl border border-border bg-secondary/60 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring/50" /></div>
-        <Button variant="outline" size="sm" className="border-border"><Filter className="mr-1.5 h-3.5 w-3.5" /> Tags</Button>
+        <Button onClick={() => toast.message("Tag filters will appear after media tagging is enabled.")} variant="outline" size="sm" className="border-border"><Filter className="mr-1.5 h-3.5 w-3.5" /> Tags</Button>
         {["All","Images","Videos"].map((name) => <button key={name} onClick={() => setFilter(name)} className={`px-3 rounded-xl text-xs font-medium border ${filter === name ? "border-primary/40 bg-primary/15 text-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:bg-secondary"}`}>{name}</button>)}
       </div>
       <button onClick={() => inputRef.current?.click()} className="w-full rounded-2xl border-2 border-dashed border-border bg-secondary/20 py-10 text-center hover:bg-secondary/30 transition"><Upload className="mx-auto h-6 w-6 text-muted-foreground" /><div className="mt-2 text-sm font-semibold">Drop files here or click to upload</div><div className="text-xs text-muted-foreground">PNG, JPG, MP4 up to 200MB</div></button>

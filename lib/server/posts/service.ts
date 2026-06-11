@@ -274,6 +274,7 @@ async function listPublishReadyAccounts(
     userId: string;
     workspaceId: string | null;
     platforms: Platform[];
+    accountIds?: string[];
   },
 ): Promise<ConnectedAccountDTO[]> {
   let query = client
@@ -284,6 +285,10 @@ async function listPublishReadyAccounts(
 
   if (input.workspaceId) {
     query = query.eq("workspace_id", input.workspaceId);
+  }
+
+  if (input.accountIds?.length) {
+    query = query.in("id", input.accountIds);
   }
 
   const { data, error } = await query.order("created_at", { ascending: false });
@@ -314,6 +319,14 @@ function validateSaveInput(input: SavePostInput) {
     throw new ValidationError("Select at least one connected publishing destination.");
   }
 
+  if (
+    input.destinationAccountIds !== undefined &&
+    (!Array.isArray(input.destinationAccountIds) ||
+      input.destinationAccountIds.some((id) => typeof id !== "string" || id.trim().length === 0))
+  ) {
+    throw new ValidationError("Invalid publishing destination.");
+  }
+
   if (input.status === "Scheduled") {
     const scheduleError = validateScheduleTime(input.scheduledFor);
     if (scheduleError) throw new ValidationError(scheduleError);
@@ -337,6 +350,9 @@ export async function savePostForUser(
   const existing = await getExistingPost(client, input.user.id, input.post.postId);
   const selectedPlatforms = uniquePlatforms(
     input.post.platforms.map((platform) => normalizePlatform(platform)),
+  );
+  const selectedDestinationIds = Array.from(
+    new Set((input.post.destinationAccountIds ?? []).map((id) => id.trim()).filter(Boolean)),
   );
   const scheduledIncrement =
     input.post.status === "Scheduled" && normalizePostStatus(existing?.status) !== "Scheduled" ? 1 : 0;
@@ -429,10 +445,20 @@ export async function savePostForUser(
     userId: input.user.id,
     workspaceId,
     platforms: selectedPlatforms,
+    accountIds: selectedDestinationIds,
   });
 
   if (input.post.status === "Scheduled" && selectedAccounts.length === 0) {
     throw new ValidationError("Select at least one connected publishing destination.");
+  }
+
+  if (selectedDestinationIds.length > 0) {
+    const foundIds = new Set(selectedAccounts.map((account) => account.id));
+    const missingIds = selectedDestinationIds.filter((id) => !foundIds.has(id));
+
+    if (missingIds.length > 0) {
+      throw new ValidationError("One or more selected destinations are no longer publish-ready.");
+    }
   }
 
   const destinationRows = selectedAccounts.map((account) => ({
@@ -443,6 +469,16 @@ export async function savePostForUser(
     platform: account.platform,
     status: input.post.status === "Scheduled" ? "scheduled" : "selected",
   }));
+
+  const destinationDelete = await client
+    .from("post_destinations")
+    .delete()
+    .eq("post_id", saved.id)
+    .eq("user_id", input.user.id);
+
+  if (destinationDelete.error && !/post_destinations|schema cache|does not exist/i.test(destinationDelete.error.message)) {
+    throw new Error(destinationDelete.error.message);
+  }
 
   if (destinationRows.length > 0) {
     const { error: destinationError } = await client

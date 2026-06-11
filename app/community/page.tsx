@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 import AppShell from "@/components/app-shell/AppShell";
 import SocialPostCard, { getSocialPostMetrics } from "@/components/posts/SocialPostCard";
-import EmptyState from "@/components/ui/EmptyState";
+import { EmptyState } from "@/components/copied-ui/EmptyState";
 import { listImportedSocialPosts } from "@/lib/social-posts";
 import type { SocialPostDTO } from "@/lib/types";
 
@@ -55,18 +55,18 @@ export default function CommunityPage() {
 
   return (
     <AppShell>
-      <section className="overflow-hidden rounded-lg border border-white/10 bg-white/[0.035]">
-        <header className="flex flex-col gap-4 border-b border-white/10 p-4 lg:flex-row lg:items-center lg:justify-between">
+      <section className="glass overflow-hidden rounded-2xl">
+        <header className="flex flex-col gap-4 border-b border-border p-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/6 text-[#bde5ad]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-primary/15 text-primary">
                 <MessageCircle size={21} aria-hidden="true" />
               </span>
               <div>
-                <h1 className="text-2xl font-black text-white">Community</h1>
-                <p className="mt-1 text-sm text-zinc-400">Track posts, comments, and conversation signals.</p>
+                <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Community</h1>
+                <p className="mt-1 text-sm text-muted-foreground">Track posts, comments, and conversation signals.</p>
               </div>
-              <span className="ml-2 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm font-black text-white">
+              <span className="ml-2 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-secondary/50 text-sm font-bold text-foreground">
                 {totalComments}
               </span>
             </div>
@@ -74,19 +74,19 @@ export default function CommunityPage() {
 
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" aria-hidden="true" />
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search posts"
-                className="min-h-10 w-56 rounded-lg border border-white/10 bg-zinc-950/50 pl-9 pr-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-[#93c47d]"
+                className="min-h-10 w-56 rounded-xl border border-border bg-secondary/50 pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/40"
               />
             </div>
-            <button className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 text-sm font-black text-zinc-200 hover:bg-white/8">
+            <button onClick={() => setQuery("")} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-secondary/50 px-3 text-sm font-semibold text-foreground hover:bg-secondary">
               <Filter size={16} aria-hidden="true" />
               All
             </button>
-            <button className="inline-flex min-h-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 px-3 text-zinc-200 hover:bg-white/8" aria-label="Filters">
+            <button onClick={() => toast.message("Comment status filters will appear after inbox sync is enabled.")} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-border bg-secondary/50 px-3 text-foreground hover:bg-secondary" aria-label="Filters">
               <SlidersHorizontal size={16} aria-hidden="true" />
             </button>
             {(["By post", "List"] as ViewMode[]).map((item) => (
@@ -94,8 +94,8 @@ export default function CommunityPage() {
                 key={item}
                 type="button"
                 onClick={() => setView(item)}
-                className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-black ${
-                  view === item ? "bg-[#93c47d]/20 text-[#d5f4cb]" : "border border-white/10 bg-white/5 text-zinc-300"
+                className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold ${
+                  view === item ? "bg-primary/15 text-primary" : "border border-border bg-secondary/40 text-muted-foreground"
                 }`}
               >
                 {item === "List" ? <List size={16} aria-hidden="true" /> : <Radio size={16} aria-hidden="true" />}
@@ -106,23 +106,23 @@ export default function CommunityPage() {
         </header>
 
         <div className="grid min-h-[680px] lg:grid-cols-[300px_minmax(0,1fr)]">
-          <aside className="border-b border-white/10 lg:border-b-0 lg:border-r lg:border-r-white/10">
-            <div className="flex items-center justify-between border-b border-white/10 p-4">
-              <p className="text-sm font-black text-white">Posts</p>
-              <span className="rounded-full bg-white/8 px-2 py-1 text-xs font-black text-zinc-300">{visiblePosts.length}</span>
+          <aside className="border-b border-border lg:border-b-0 lg:border-r lg:border-r-border">
+            <div className="flex items-center justify-between border-b border-border p-4">
+              <p className="text-sm font-semibold text-foreground">Posts</p>
+              <span className="rounded-full bg-secondary px-2 py-1 text-xs font-bold text-muted-foreground">{visiblePosts.length}</span>
             </div>
 
             {loading ? (
               <div className="space-y-3 p-4">
                 {[0, 1, 2].map((item) => (
-                  <div key={item} className="h-24 animate-pulse rounded-lg bg-white/7" />
+                  <div key={item} className="h-24 animate-pulse rounded-xl bg-secondary/70" />
                 ))}
               </div>
             ) : visiblePosts.length === 0 ? (
               <div className="p-5 text-center">
-                <p className="text-sm font-black text-white">No posts found</p>
-                <p className="mt-2 text-xs leading-5 text-zinc-400">Sync Instagram posts to manage community activity.</p>
-                <Link href="/published" className="mt-4 inline-flex min-h-9 items-center rounded-lg border border-white/10 px-3 text-xs font-black text-white hover:bg-white/8">
+                <p className="text-sm font-semibold text-foreground">No posts found</p>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">Sync Instagram posts to manage community activity.</p>
+                <Link href="/published" className="mt-4 inline-flex min-h-9 items-center rounded-xl border border-border px-3 text-xs font-bold text-foreground hover:bg-secondary">
                   Show all posts
                 </Link>
               </div>
@@ -137,12 +137,12 @@ export default function CommunityPage() {
                       key={post.id}
                       type="button"
                       onClick={() => setSelectedId(post.id)}
-                      className={`mb-2 w-full rounded-lg border p-3 text-left transition ${
-                        active ? "border-[#93c47d]/50 bg-[#93c47d]/12" : "border-white/10 bg-white/[0.035] hover:bg-white/[0.06]"
+                      className={`mb-2 w-full rounded-xl border p-3 text-left transition ${
+                        active ? "border-primary/50 bg-primary/10" : "border-border bg-secondary/30 hover:bg-secondary/50"
                       }`}
                     >
-                      <p className="line-clamp-2 text-sm font-bold text-white">{post.caption || "Instagram post"}</p>
-                      <div className="mt-3 flex items-center gap-2 text-xs font-bold text-zinc-400">
+                      <p className="line-clamp-2 text-sm font-semibold text-foreground">{post.caption || "Instagram post"}</p>
+                      <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                         <MessageCircle size={13} aria-hidden="true" />
                         {metrics.comments ?? "-"} comments
                         <span className="ml-auto">{metrics.reactions ?? "-"} reactions</span>
@@ -156,30 +156,30 @@ export default function CommunityPage() {
 
           <main className="p-4 lg:p-8">
             {loading ? (
-              <div className="min-h-[520px] animate-pulse rounded-lg bg-white/6" />
+              <div className="min-h-[520px] animate-pulse rounded-2xl bg-secondary/60" />
             ) : selectedPost ? (
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
                 {view === "By post" ? (
                   <div className="mx-auto max-w-4xl">
                     <SocialPostCard post={selectedPost} />
-                    <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.035] p-5">
+                    <div className="mt-4 rounded-2xl border border-border bg-secondary/30 p-5">
                       <div className="flex items-center gap-3">
-                        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#93c47d]/18 text-[#c9efbd]">
+                        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-primary">
                           <Radio size={22} aria-hidden="true" />
                         </span>
                         <div>
-                          <h2 className="font-black text-white">Listening for new comments</h2>
-                          <p className="mt-1 text-sm text-zinc-400">New comments and replies will appear here when synced.</p>
+                          <h2 className="font-semibold text-foreground">Listening for new comments</h2>
+                          <p className="mt-1 text-sm text-muted-foreground">New comments and replies will appear here when synced.</p>
                         </div>
                       </div>
                       <div className="mt-5 grid gap-3 md:grid-cols-2">
-                        <Link href="/create" className="rounded-lg border border-white/10 bg-white/5 p-4 transition hover:bg-white/8">
-                          <p className="font-black text-white">Post something new</p>
-                          <p className="mt-2 text-sm leading-6 text-zinc-400">Create content that invites comments and replies.</p>
+                        <Link href="/create" className="rounded-xl border border-border bg-secondary/40 p-4 transition hover:bg-secondary">
+                          <p className="font-semibold text-foreground">Post something new</p>
+                          <p className="mt-2 text-sm leading-6 text-muted-foreground">Create content that invites comments and replies.</p>
                         </Link>
-                        <Link href="/channels" className="rounded-lg border border-white/10 bg-white/5 p-4 transition hover:bg-white/8">
-                          <p className="flex items-center gap-2 font-black text-white"><Plus size={16} /> Connect more channels</p>
-                          <p className="mt-2 text-sm leading-6 text-zinc-400">Manage conversations from every connected account.</p>
+                        <Link href="/channels" className="rounded-xl border border-border bg-secondary/40 p-4 transition hover:bg-secondary">
+                          <p className="flex items-center gap-2 font-semibold text-foreground"><Plus size={16} /> Connect more channels</p>
+                          <p className="mt-2 text-sm leading-6 text-muted-foreground">Manage conversations from every connected account.</p>
                         </Link>
                       </div>
                     </div>
@@ -194,7 +194,7 @@ export default function CommunityPage() {
               </motion.div>
             ) : (
               <EmptyState
-                icon={Radio}
+                icon={<Radio size={22} aria-hidden="true" />}
                 title="We're listening for new comments"
                 description="Sync account posts first. Comments and community signals will appear here."
               />

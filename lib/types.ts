@@ -129,6 +129,7 @@ export interface SavePostInput {
   firstComment: string;
   imageUrl: string | null;
   platforms: Platform[];
+  destinationAccountIds?: string[];
   status: "Draft" | "Scheduled";
   scheduledFor: string | null;
   mediaAssets?: MediaAssetDTO[];

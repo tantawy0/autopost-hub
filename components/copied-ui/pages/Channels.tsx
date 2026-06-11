@@ -97,6 +97,7 @@ export default function Channels() {
   };
   const disconnect = async (channel: UiChannel) => {
     if (!channel.source) return;
+    if (!window.confirm(`Disconnect ${channel.handle}?`)) return;
     try { await disconnectConnectedAccount(channel.source.id); toast.success("Channel disconnected"); await load(); }
     catch (error) { toast.error(error instanceof Error ? error.message : "Unable to disconnect channel"); }
   };

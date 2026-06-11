@@ -44,7 +44,7 @@ export function Sidebar({ onLogout }: { onLogout: () => void }) {
         <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-primary text-[11px] font-bold text-primary-foreground">OS</div>
         <div className="flex-1 min-w-0">
           <div className="truncate text-sm font-semibold">Creator OS</div>
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Silent Mode · Live</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Silent Mode - Live</div>
         </div>
         <ChevronsUpDown className="h-4 w-4 text-muted-foreground" />
       </Link>

@@ -68,7 +68,7 @@ export default function Settings() {
               <Field label="Workspace name" value="Creator OS" />
               <Field label="Default timezone" value={Intl.DateTimeFormat().resolvedOptions().timeZone} />
               <Field label="Brand voice" value="Configure your brand voice for AI-assisted drafts." textarea />
-              <Button className="bg-gradient-primary text-primary-foreground shadow-glow">Save changes</Button>
+              <Button onClick={() => toast.success("Workspace preferences saved locally for this session")} className="bg-gradient-primary text-primary-foreground shadow-glow">Save changes</Button>
             </>
           ) : null}
           {tab === "team" ? (

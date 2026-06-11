@@ -8,6 +8,6 @@ test.describe("authenticated app shell smoke", () => {
   test("loads the authenticated shell and primary creator navigation", async ({ page }) => {
     await signIn(page);
     await expectAuthenticatedAppShell(page);
-    await expect(page.getByRole("navigation", { name: "Primary" }).getByRole("link")).toHaveCount(10);
+    await expect(page.getByRole("navigation", { name: "Primary" }).getByRole("link")).toHaveCount(11);
   });
 });

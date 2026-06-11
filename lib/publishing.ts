@@ -71,6 +71,23 @@ export interface PublishPostResult {
   attempts: PublishingAttemptDTO[];
 }
 
+async function loadSavedDestinationAccountIds(client: SupabaseClient, post: PostRow): Promise<string[]> {
+  const { data, error } = await client
+    .from("post_destinations")
+    .select("connected_account_id")
+    .eq("post_id", post.id)
+    .eq("user_id", post.user_id);
+
+  if (error) {
+    if (/post_destinations|schema cache|does not exist/i.test(error.message)) return [];
+    throw new Error(error.message);
+  }
+
+  return (data ?? [])
+    .map((row) => (row as { connected_account_id?: string | null }).connected_account_id)
+    .filter((id): id is string => Boolean(id));
+}
+
 function mediaFromPost(post: PostRow): MediaAssetDTO[] {
   if (!post.image_url) return [];
 
@@ -344,13 +361,17 @@ export async function publishPost(
     throw new Error("This post has already reached a terminal publishing state.");
   }
 
+  const savedDestinationAccountIds = options.destinationAccountIds?.length
+    ? options.destinationAccountIds
+    : await loadSavedDestinationAccountIds(client, postRow);
+
   const accountQuery = client
     .from("connected_accounts")
     .select("*")
     .eq("user_id", postRow.user_id);
 
-  const selectedQuery = options.destinationAccountIds?.length
-    ? accountQuery.in("id", options.destinationAccountIds)
+  const selectedQuery = savedDestinationAccountIds.length
+    ? accountQuery.in("id", savedDestinationAccountIds)
     : accountQuery.in(
         "platform",
         (postRow.platforms ?? []).map((platform) => normalizePlatform(platform)),

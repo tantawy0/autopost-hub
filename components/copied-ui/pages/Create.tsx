@@ -196,6 +196,7 @@ export default function Create({ postId }: CreateProps = {}) {
         imageUrl: media[0]?.url ?? null,
         mediaAssets: media,
         platforms: selectedPlatforms,
+        destinationAccountIds: selected,
         status,
         scheduledFor: status === "Scheduled" ? new Date(scheduleTime).toISOString() : null,
       });
@@ -239,6 +240,45 @@ export default function Create({ postId }: CreateProps = {}) {
       toast.success("AI rewrite added");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "AI rewrite failed");
+    } finally {
+      setBusy("");
+    }
+  };
+
+  const appendToCaption = (value: string) => {
+    setCaption((current) => `${current}${current.trim() ? "\n\n" : ""}${value}`);
+  };
+
+  const addLink = () => {
+    const value = window.prompt("Paste a URL to add to this post");
+    if (!value) return;
+    appendToCaption(value.trim());
+  };
+
+  const runSuggestion = async (suggestion: string) => {
+    setBusy("ai");
+    try {
+      const response = await fetch("/api/ai/assistant", {
+        method: "POST",
+        headers: await getClientAuthHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+          prompt: `${suggestion}. Return one ready-to-use caption fragment only.`,
+          caption,
+        }),
+      });
+      const body = (await response.json().catch(() => null)) as {
+        suggestions?: string[];
+        message?: string;
+      } | null;
+
+      if (!response.ok || !body?.suggestions?.[0]) {
+        throw new Error(body?.message ?? "AI suggestion failed");
+      }
+
+      appendToCaption(body.suggestions[0]);
+      toast.success("Suggestion added");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "AI suggestion failed");
     } finally {
       setBusy("");
     }
@@ -353,9 +393,9 @@ export default function Create({ postId }: CreateProps = {}) {
             />
             <div className="mt-3 flex items-center gap-1 text-muted-foreground">
               <ToolButton icon={ImageIcon} label="Media" onClick={() => inputRef.current?.click()} />
-              <ToolButton icon={Hash} label="Hashtags" />
-              <ToolButton icon={Link2} label="Link" />
-              <ToolButton icon={Smile} label="Emoji" />
+              <ToolButton icon={Hash} label="Hashtags" onClick={() => appendToCaption("#socialmedia #content #growth")} />
+              <ToolButton icon={Link2} label="Link" onClick={addLink} />
+              <ToolButton icon={Smile} label="Emoji" onClick={() => setCaption((current) => `${current} ✨`)} />
               <div className="ml-auto flex items-center gap-3 text-[11px]">
                 <span className={overLimit ? "text-destructive font-semibold" : ""}>
                   {caption.length}/{charLimit}
@@ -409,7 +449,8 @@ export default function Create({ postId }: CreateProps = {}) {
                 (suggestion) => (
                   <button
                     key={suggestion}
-                    onClick={() => setCaption((current) => `${current}${current ? "\n\n" : ""}${suggestion}`)}
+                    disabled={busy === "ai"}
+                    onClick={() => void runSuggestion(suggestion)}
                     className="text-left rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm hover:bg-secondary transition"
                   >
                     {suggestion}

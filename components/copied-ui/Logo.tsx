@@ -14,7 +14,7 @@ export function Logo({ className, withText = true, href = "/dashboard" }: { clas
       {withText ? (
         <div className="leading-tight">
           <div className="font-display text-[15px] font-bold tracking-tight">Auto Post Hub</div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Schedule · Publish · Grow</div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Schedule - Publish - Grow</div>
         </div>
       ) : null}
     </Link>
