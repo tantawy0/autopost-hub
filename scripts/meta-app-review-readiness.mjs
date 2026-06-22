@@ -62,6 +62,8 @@ async function main() {
     "pages_manage_posts",
     "instagram_basic",
     "instagram_content_publish",
+    "instagram_business_basic",
+    "instagram_business_content_publish",
   ];
 
   if (!appId || !appSecret) {

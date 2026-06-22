@@ -1,7 +1,12 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import { type UiPlatform, uiPlatformMeta as platformMeta } from "@/lib/ui-repo-adapters";
+import { getPlatformName } from "@/lib/page-copy";
+import { useUiStore } from "@/lib/ui-store";
 
 export function PlatformBadge({ platform, size = "sm", showName = false }: { platform: UiPlatform; size?: "xs" | "sm" | "md"; showName?: boolean }) {
+  const locale = useUiStore((state) => state.locale);
   const meta = platformMeta[platform];
   const sizes = {
     xs: "h-5 w-5 text-[9px]",
@@ -13,7 +18,7 @@ export function PlatformBadge({ platform, size = "sm", showName = false }: { pla
       <div className={cn("grid place-items-center rounded-md bg-gradient-to-br font-bold text-white shadow-sm", meta.color, sizes[size])}>
         {meta.initial}
       </div>
-      {showName && <span className="text-xs font-medium text-foreground/80">{meta.name}</span>}
+      {showName && <span className="text-xs font-medium text-foreground/80">{getPlatformName(platform, locale)}</span>}
     </div>
   );
 }

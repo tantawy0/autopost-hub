@@ -57,7 +57,22 @@ export function getInstagramSignedRequestSecret(): string {
 }
 
 function getInstagramRedirectUri(appUrl = getAppUrl()): string {
-  return process.env.INSTAGRAM_REDIRECT_URI ?? `${appUrl}/api/instagram/callback`;
+  const fallback = `${appUrl.replace(/\/+$/, "")}/api/instagram/callback`;
+  const configured = process.env.INSTAGRAM_REDIRECT_URI;
+
+  if (!configured) return fallback;
+
+  try {
+    const configuredUrl = new URL(configured);
+    const appHost = new URL(appUrl).host;
+    const isLocalRequest = appHost.startsWith("localhost:") || appHost.startsWith("127.0.0.1:");
+
+    if (isLocalRequest && configuredUrl.host !== appHost) return fallback;
+  } catch {
+    return fallback;
+  }
+
+  return configured;
 }
 
 export function getInstagramApiVersion(): string {

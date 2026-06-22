@@ -1,6 +1,6 @@
 # Meta App Review Pack
 
-Last updated: 2026-06-11
+Last updated: 2026-06-15
 
 Sources:
 
@@ -147,6 +147,20 @@ available yet, keep the app limited to admins/developers/testers while preparing
 
 Without Advanced Access/App Review, real users outside app roles may not be able
 to connect Pages or Instagram accounts, even if AutoPost Hub code is ready.
+
+## Instagram Development-Mode Gate
+
+When Instagram Login returns `Insufficient Developer Role`, the app has reached
+Instagram before AutoPost Hub callback code runs. The Instagram account being
+used is not currently allowed to authorize the app in Development mode. To test
+before public launch, add that real user under Meta App Dashboard roles as an
+Admin, Developer, or Tester and make sure the invite is accepted. If the
+Instagram product exposes **Instagram Testers/Instagram Users**, add the
+Instagram username there too and accept the invite from
+`https://www.instagram.com/accounts/manage_access/`. For customer accounts
+outside app roles, submit App Review for the exact Instagram permissions
+demonstrated in the screencast and obtain Advanced Access before switching the
+production app to Live.
 
 ## Data Deletion Callback Behavior
 

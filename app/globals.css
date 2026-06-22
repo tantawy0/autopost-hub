@@ -161,6 +161,20 @@ body {
   text-rendering: geometricPrecision;
 }
 
+html[dir="rtl"] body {
+  font-family: Tahoma, Arial, var(--font-geist-sans), sans-serif;
+}
+
+html[dir="rtl"] input,
+html[dir="rtl"] textarea,
+html[dir="rtl"] select {
+  direction: rtl;
+}
+
+html[dir="rtl"] .premium-scrollbar {
+  scrollbar-gutter: stable both-edges;
+}
+
 .app-background {
   position: relative;
   overflow-x: clip;

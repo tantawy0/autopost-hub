@@ -1,6 +1,10 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import type { UiPostStatus } from "@/lib/ui-repo-adapters";
 import { CheckCircle2, Clock, FileText, Loader2, AlertTriangle } from "lucide-react";
+import { useUiStore } from "@/lib/ui-store";
+import { getStatusLabel } from "@/lib/page-copy";
 
 const map: Record<UiPostStatus, { label: string; cls: string; icon: typeof CheckCircle2 }> = {
   draft: { label: "Draft", cls: "bg-muted text-muted-foreground", icon: FileText },
@@ -11,12 +15,13 @@ const map: Record<UiPostStatus, { label: string; cls: string; icon: typeof Check
 };
 
 export function StatusChip({ status, className }: { status: UiPostStatus; className?: string }) {
+  const locale = useUiStore((state) => state.locale);
   const m = map[status];
   const Icon = m.icon;
   return (
     <span className={cn("inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-0.5 text-[11px] font-medium", m.cls, className)}>
       <Icon className={cn("h-3 w-3", status === "publishing" && "animate-spin")} />
-      {m.label}
+      {getStatusLabel(status, locale)}
     </span>
   );
 }

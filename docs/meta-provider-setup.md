@@ -60,6 +60,16 @@ the app/tester yet. While the app is in development mode, only app admins,
 developers, or testers can grant unreviewed permissions; public users require
 Advanced Access/App Review.
 
+If Instagram Login shows **Insufficient Developer Role**, the current Instagram
+user is not allowed to authorize this app while it is in Development mode. Add
+the real Instagram/Facebook user as an app Admin, Developer, or Tester in Meta
+App Dashboard roles. If the dashboard shows an Instagram-specific roles area,
+add the Instagram username under **Instagram Testers/Instagram Users** as well,
+then accept the invite from `https://www.instagram.com/accounts/manage_access/`.
+After the invite is accepted, retry Instagram Login in a fresh browser tab. For
+non-role public users, complete App Review/Advanced Access and switch the app to
+Live only after the reviewed flows are approved.
+
 Before App Review, make at least one successful API call for every requested
 advanced permission within the last 30 days, and record a 1080p screencast that
 shows a user granting and using each requested permission. Do not use fake

@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   addDays,
   addMonths,
-  format,
   isSameDay,
   startOfMonth,
   startOfWeek,
@@ -18,6 +17,8 @@ import { PlatformBadge, PlatformStack } from "@/components/copied-ui/PlatformBad
 import { SkeletonLine } from "@/components/copied-ui/Skeletons";
 import { listPostsByStatus } from "@/lib/posts";
 import { toUiPost, type UiPost } from "@/lib/ui-repo-adapters";
+import { useUiStore } from "@/lib/ui-store";
+import { formatAppDate, getPageCopy } from "@/lib/page-copy";
 
 const views = ["Month", "Week", "List"] as const;
 type CalendarView = (typeof views)[number];
@@ -30,19 +31,23 @@ function sortBySchedule(posts: UiPost[]) {
   return [...posts].sort((a, b) => postDate(a).getTime() - postDate(b).getTime());
 }
 
-function dateRangeLabel(days: Date[]) {
+function dateRangeLabel(days: Date[], locale: "en" | "ar") {
   const first = days[0];
   const last = days[days.length - 1];
 
   if (!first || !last) return "";
   if (first.getMonth() === last.getMonth()) {
-    return `${format(first, "MMMM d")} - ${format(last, "d, yyyy")}`;
+    return `${formatAppDate(first, locale, "MMMM d", "d MMMM")} - ${formatAppDate(last, locale, "d, yyyy", "d، yyyy")}`;
   }
 
-  return `${format(first, "MMM d")} - ${format(last, "MMM d, yyyy")}`;
+  return `${formatAppDate(first, locale, "MMM d", "d MMM")} - ${formatAppDate(last, locale, "MMM d, yyyy", "d MMM، yyyy")}`;
 }
 
 export default function Calendar() {
+  const locale = useUiStore((state) => state.locale);
+  const copy = getPageCopy(locale);
+  const t = copy.calendar;
+  const common = copy.common;
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<UiPost[]>([]);
   const [cursor, setCursor] = useState(new Date());
@@ -67,7 +72,7 @@ export default function Calendar() {
 
   const postsForDay = (day: Date) => posts.filter((post) => isSameDay(postDate(post), day));
   const selectedPosts = postsForDay(selectedDay);
-  const visibleTitle = view === "Week" ? dateRangeLabel(weekDays) : format(cursor, "MMMM yyyy");
+  const visibleTitle = view === "Week" ? dateRangeLabel(weekDays, locale) : formatAppDate(cursor, locale, "MMMM yyyy", "MMMM yyyy");
 
   const moveBackward = () => {
     if (view === "Week") {
@@ -123,16 +128,16 @@ export default function Calendar() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Calendar</h1>
-          <p className="text-sm text-muted-foreground">Plan the week. Click a day for details.</p>
+          <h1 className="font-display text-3xl font-bold tracking-tight">{t.title}</h1>
+          <p className="text-sm text-muted-foreground">{t.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button onClick={goToday} variant="outline" size="sm" className="border-border">
-            <Filter className="mr-1.5 h-3.5 w-3.5" /> Today
+            <Filter className="mr-1.5 h-3.5 w-3.5" /> {t.today}
           </Button>
           <Button asChild className="bg-gradient-primary text-primary-foreground shadow-glow">
             <Link href="/create">
-              <Plus className="mr-1 h-4 w-4" /> New post
+              <Plus className="mr-1 h-4 w-4" /> {common.newPost}
             </Link>
           </Button>
         </div>
@@ -141,11 +146,11 @@ export default function Calendar() {
       <div className="glass rounded-2xl p-4">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <button onClick={moveBackward} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-secondary" aria-label="Previous period">
+            <button onClick={moveBackward} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-secondary" aria-label={t.previous}>
               <ChevronLeft className="h-4 w-4" />
             </button>
             <div className="font-display text-xl font-semibold">{visibleTitle}</div>
-            <button onClick={moveForward} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-secondary" aria-label="Next period">
+            <button onClick={moveForward} className="grid h-8 w-8 place-items-center rounded-lg hover:bg-secondary" aria-label={t.next}>
               <ChevronRight className="h-4 w-4" />
             </button>
           </div>
@@ -156,7 +161,7 @@ export default function Calendar() {
                 onClick={() => setView(name)}
                 className={`rounded-md px-3 py-1.5 transition ${view === name ? "bg-background text-foreground shadow" : "text-muted-foreground"}`}
               >
-                {name}
+                {t.views[name]}
               </button>
             ))}
           </div>
@@ -177,12 +182,12 @@ export default function Calendar() {
         <div className="glass rounded-2xl p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">Selected day</div>
-              <div className="font-display text-xl font-semibold">{format(selectedDay, "EEEE, MMMM d")}</div>
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">{t.selectedDay}</div>
+              <div className="font-display text-xl font-semibold">{formatAppDate(selectedDay, locale, "EEEE, MMMM d", "EEEE، d MMMM")}</div>
             </div>
             <Button size="sm" asChild className="bg-gradient-primary text-primary-foreground">
               <Link href="/create">
-                <Plus className="mr-1 h-3.5 w-3.5" /> Add post
+                <Plus className="mr-1 h-3.5 w-3.5" /> {common.addPost}
               </Link>
             </Button>
           </div>
@@ -252,6 +257,9 @@ function WeekView({
   postsForDay: (day: Date) => UiPost[];
   onSelectDay: (day: Date) => void;
 }) {
+  const locale = useUiStore((state) => state.locale);
+  const t = getPageCopy(locale).calendar;
+  const common = getPageCopy(locale).common;
   return (
     <div className="grid gap-2 md:grid-cols-7">
       {days.map((day) => {
@@ -267,7 +275,7 @@ function WeekView({
           >
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{format(day, "EEE")}</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{formatAppDate(day, locale, "EEE", "EEE")}</div>
                 <DayNumber day={day} today={today} />
               </div>
               <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground">{items.length}</span>
@@ -276,14 +284,14 @@ function WeekView({
               {items.slice(0, 5).map((post) => (
                 <div key={post.id} className="rounded-xl border border-border bg-background/50 p-2">
                   <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                    <span>{format(postDate(post), "HH:mm")}</span>
+                    <span>{formatAppDate(postDate(post), locale, "HH:mm")}</span>
                     <PlatformStack platforms={post.platforms} />
                   </div>
-                  <p className="mt-1 line-clamp-2 text-xs text-foreground/85">{post.caption || "Untitled post"}</p>
+                  <p className="mt-1 line-clamp-2 text-xs text-foreground/85">{post.caption || common.untitledPost}</p>
                 </div>
               ))}
-              {items.length > 5 ? <div className="text-[10px] text-muted-foreground">+{items.length - 5} more</div> : null}
-              {!items.length ? <div className="mt-8 text-center text-xs text-muted-foreground">No posts</div> : null}
+              {items.length > 5 ? <div className="text-[10px] text-muted-foreground">{t.more(items.length - 5)}</div> : null}
+              {!items.length ? <div className="mt-8 text-center text-xs text-muted-foreground">{t.noPosts}</div> : null}
             </div>
           </button>
         );
@@ -293,15 +301,18 @@ function WeekView({
 }
 
 function ListView({ posts }: { posts: UiPost[] }) {
+  const locale = useUiStore((state) => state.locale);
+  const t = getPageCopy(locale).calendar;
+  const common = getPageCopy(locale).common;
   if (!posts.length) return <EmptyDay />;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border">
       <div className="hidden grid-cols-12 gap-4 border-b border-border bg-secondary/30 px-4 py-3 text-[10px] uppercase tracking-wider text-muted-foreground md:grid">
-        <div className="col-span-5">Post</div>
-        <div className="col-span-3">Channels</div>
-        <div className="col-span-2">Date</div>
-        <div className="col-span-2">Time</div>
+        <div className="col-span-5">{t.tablePost}</div>
+        <div className="col-span-3">{t.tableChannels}</div>
+        <div className="col-span-2">{t.tableDate}</div>
+        <div className="col-span-2">{t.tableTime}</div>
       </div>
       {posts.map((post) => (
         <Link
@@ -310,14 +321,14 @@ function ListView({ posts }: { posts: UiPost[] }) {
           className="grid gap-3 border-b border-border px-4 py-4 transition last:border-b-0 hover:bg-secondary/30 md:grid-cols-12 md:items-center md:gap-4"
         >
           <div className="min-w-0 md:col-span-5">
-            <p className="truncate text-sm font-medium">{post.caption || "Untitled post"}</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">by {post.author.name}</p>
+            <p className="truncate text-sm font-medium">{post.caption || common.untitledPost}</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">{common.by} {post.author.name}</p>
           </div>
           <div className="md:col-span-3">
             <PlatformStack platforms={post.platforms} />
           </div>
-          <div className="text-xs text-muted-foreground md:col-span-2">{format(postDate(post), "MMM d, yyyy")}</div>
-          <div className="text-xs font-semibold md:col-span-2">{format(postDate(post), "HH:mm")}</div>
+          <div className="text-xs text-muted-foreground md:col-span-2">{formatAppDate(postDate(post), locale, "MMM d, yyyy", "d MMM، yyyy")}</div>
+          <div className="text-xs font-semibold md:col-span-2">{formatAppDate(postDate(post), locale, "HH:mm")}</div>
         </Link>
       ))}
     </div>
@@ -325,9 +336,11 @@ function ListView({ posts }: { posts: UiPost[] }) {
 }
 
 function WeekHeader() {
+  const locale = useUiStore((state) => state.locale);
+  const headers = getPageCopy(locale).calendar.headers;
   return (
     <div className="mb-1 grid grid-cols-7 gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+      {headers.map((day) => (
         <div key={day} className="px-2 py-1">
           {day}
         </div>
@@ -337,14 +350,17 @@ function WeekHeader() {
 }
 
 function DayNumber({ day, today }: { day: Date; today: boolean }) {
+  const locale = useUiStore((state) => state.locale);
   return (
     <div className={`text-xs font-semibold ${today ? "inline-grid h-5 w-5 place-items-center rounded-full bg-gradient-primary text-primary-foreground" : ""}`}>
-      {format(day, "d")}
+      {formatAppDate(day, locale, "d")}
     </div>
   );
 }
 
 function MiniPostStack({ posts }: { posts: UiPost[] }) {
+  const locale = useUiStore((state) => state.locale);
+  const t = getPageCopy(locale).calendar;
   return (
     <div className="mt-1.5 space-y-1">
       {posts.slice(0, 3).map((post) => (
@@ -353,29 +369,33 @@ function MiniPostStack({ posts }: { posts: UiPost[] }) {
           <span className="truncate text-foreground/80">{post.caption.slice(0, 18)}...</span>
         </div>
       ))}
-      {posts.length > 3 ? <div className="text-[9px] text-muted-foreground">+{posts.length - 3} more</div> : null}
+      {posts.length > 3 ? <div className="text-[9px] text-muted-foreground">{t.more(posts.length - 3)}</div> : null}
     </div>
   );
 }
 
 function PostLinkCard({ post }: { post: UiPost }) {
+  const locale = useUiStore((state) => state.locale);
+  const common = getPageCopy(locale).common;
   return (
     <Link href={`/edit-post/${post.id}`} className="rounded-xl border border-border bg-secondary/30 p-4 hover-lift">
       <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-        <span>{format(postDate(post), "HH:mm")}</span>
+        <span>{formatAppDate(postDate(post), locale, "HH:mm")}</span>
         <PlatformStack platforms={post.platforms} />
       </div>
       <p className="mt-2 text-sm">{post.caption}</p>
-      <div className="mt-3 text-[11px] text-muted-foreground">by {post.author.name}</div>
+      <div className="mt-3 text-[11px] text-muted-foreground">{common.by} {post.author.name}</div>
     </Link>
   );
 }
 
 function EmptyDay() {
+  const locale = useUiStore((state) => state.locale);
+  const t = getPageCopy(locale).calendar;
   return (
     <div className="rounded-xl border border-dashed border-border bg-secondary/20 p-10 text-center">
-      <div className="font-semibold">Nothing scheduled</div>
-      <p className="mt-1 text-sm text-muted-foreground">Add content to fill this day.</p>
+      <div className="font-semibold">{t.nothingScheduled}</div>
+      <p className="mt-1 text-sm text-muted-foreground">{t.emptyBody}</p>
     </div>
   );
 }

@@ -15,7 +15,7 @@ test.describe("channels", () => {
     await expect(page.getByText("Disconnected").first()).toBeVisible();
   });
 
-  test("starts channel OAuth from the copied UI connect action", async ({ page }) => {
+  test("starts channel OAuth in a separate popup from the copied UI connect action", async ({ page }) => {
     const callbackUrl = `${process.env.E2E_BASE_URL ?? "http://127.0.0.1:3137"}/channels?connected=instagram`;
 
     await page.route(/\/api\/instagram\/login\?returnTo=\/channels$/, async (route) => {
@@ -27,7 +27,11 @@ test.describe("channels", () => {
 
     await signIn(page);
     await page.goto("/channels");
+    const popupPromise = page.waitForEvent("popup");
     await page.getByRole("button", { name: /connect instagram/i }).click();
-    await page.waitForURL(callbackUrl);
+    const popup = await popupPromise;
+
+    await expect.poll(() => popup.isClosed()).toBe(true);
+    await expect(page).toHaveURL(/\/channels/);
   });
 });

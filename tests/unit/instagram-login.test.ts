@@ -56,6 +56,29 @@ test("Instagram Login uses the Instagram OAuth surface instead of Facebook Login
   );
 });
 
+test("Instagram Login keeps local OAuth callbacks on localhost", () => {
+  withEnv(
+    {
+      META_APP_ID: "meta-app-id",
+      META_APP_SECRET: "meta-app-secret-with-length",
+      INSTAGRAM_REDIRECT_URI: "https://autopost-hub.vercel.app/api/instagram/callback",
+      INSTAGRAM_SCOPES: undefined,
+    },
+    () => {
+      const url = buildInstagramLoginAuthorizationUrl(
+        { userId: "user-1", returnTo: "/channels", nonce: "nonce" },
+        "http://localhost:3000",
+      );
+      const parsed = new URL(url);
+
+      assert.equal(
+        parsed.searchParams.get("redirect_uri"),
+        "http://localhost:3000/api/instagram/callback",
+      );
+    },
+  );
+});
+
 test("Instagram Login accepts Business and Creator accounts only", () => {
   assert.equal(isInstagramProfessionalAccount({ id: "ig-1", account_type: "BUSINESS" }), true);
   assert.equal(isInstagramProfessionalAccount({ id: "ig-1", account_type: "MEDIA_CREATOR" }), true);

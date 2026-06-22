@@ -33,7 +33,9 @@ import {
 import { getPost, publishPostClient, savePost, uploadMediaAsset } from "@/lib/posts";
 import { supabase } from "@/lib/supabase";
 import type { ConnectedAccountDTO, MediaAssetDTO } from "@/lib/types";
-import { toUiPlatform, type UiPlatform, uiPlatformMeta as platformMeta } from "@/lib/ui-repo-adapters";
+import { toUiPlatform, type UiPlatform } from "@/lib/ui-repo-adapters";
+import { useUiStore } from "@/lib/ui-store";
+import { getPageCopy, getPlatformName } from "@/lib/page-copy";
 
 type CreateProps = {
   postId?: string;
@@ -49,6 +51,10 @@ function toDateTimeLocal(value: string | null): string {
 }
 
 export default function Create({ postId }: CreateProps = {}) {
+  const locale = useUiStore((state) => state.locale);
+  const copy = getPageCopy(locale);
+  const t = copy.create;
+  const common = copy.common;
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
@@ -59,7 +65,7 @@ export default function Create({ postId }: CreateProps = {}) {
   const [media, setMedia] = useState<MediaAssetDTO[]>([]);
   const [scheduleTime, setScheduleTime] = useState("");
   const [busy, setBusy] = useState("");
-  const [autosave, setAutosave] = useState("Saved");
+  const [autosave, setAutosave] = useState<"saved" | "saving">("saved");
 
   useEffect(() => {
     let active = true;
@@ -88,7 +94,7 @@ export default function Create({ postId }: CreateProps = {}) {
           setSelected(items.map((item) => item.id));
         }
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Unable to load composer");
+        toast.error(error instanceof Error ? error.message : t.loadError);
       } finally {
         if (active) setLoading(false);
       }
@@ -106,7 +112,7 @@ export default function Create({ postId }: CreateProps = {}) {
 
     let active = true;
     const timer = window.setTimeout(async () => {
-      setAutosave("Saving...");
+      setAutosave("saving");
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -126,7 +132,7 @@ export default function Create({ postId }: CreateProps = {}) {
         }).catch(() => undefined);
       }
 
-      if (active) setAutosave("Saved");
+      if (active) setAutosave("saved");
     }, 900);
 
     return () => {
@@ -152,7 +158,7 @@ export default function Create({ postId }: CreateProps = {}) {
     ? selectedDestinations.filter((item) => toUiPlatform(item.platform) === activePreviewPlatform)
     : [];
   const activePreviewDestination = activePreviewDestinations[0];
-  const activePreviewName = activePreviewDestination?.accountName ?? "No channel selected";
+  const activePreviewName = activePreviewDestination?.accountName ?? t.noChannelSelected;
   const charLimit = activePreviewPlatform === "linkedin" ? 3000 : 2200;
   const overLimit = caption.length > charLimit;
 
@@ -165,9 +171,9 @@ export default function Create({ postId }: CreateProps = {}) {
         const uploaded = await uploadMediaAsset(file);
         setMedia((current) => [...current, uploaded]);
       }
-      toast.success("Media uploaded");
+      toast.success(t.mediaUploaded);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Upload failed");
+      toast.error(error instanceof Error ? error.message : t.uploadFailed);
     } finally {
       setBusy("");
     }
@@ -175,15 +181,15 @@ export default function Create({ postId }: CreateProps = {}) {
 
   const persist = async (status: "Draft" | "Scheduled", publish = false) => {
     if (!caption.trim() && !media.length) {
-      toast.error("Add a caption or media first");
+      toast.error(t.requireContent);
       return;
     }
     if (!selectedDestinations.length) {
-      toast.error("Connect and select at least one publishing destination");
+      toast.error(t.requireDestination);
       return;
     }
     if (status === "Scheduled" && !scheduleTime) {
-      toast.error("Choose a schedule time");
+      toast.error(t.requireTime);
       return;
     }
 
@@ -203,14 +209,14 @@ export default function Create({ postId }: CreateProps = {}) {
 
       if (publish) {
         await publishPostClient(post.id, selectedDestinations);
-        toast.success("Publishing complete");
+        toast.success(t.published);
         router.push("/published");
       } else {
-        toast.success(status === "Draft" ? "Draft saved" : "Post scheduled");
+        toast.success(status === "Draft" ? t.draftSaved : t.scheduled);
         router.push(status === "Draft" ? "/queue" : "/calendar");
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to save post");
+      toast.error(error instanceof Error ? error.message : t.saveFailed);
     } finally {
       setBusy("");
     }
@@ -223,7 +229,7 @@ export default function Create({ postId }: CreateProps = {}) {
         method: "POST",
         headers: await getClientAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
-          prompt: "Rewrite this caption to be clearer, engaging and platform-ready.",
+          prompt: t.aiRewritePrompt,
           caption,
         }),
       });
@@ -233,13 +239,13 @@ export default function Create({ postId }: CreateProps = {}) {
       } | null;
 
       if (!response.ok || !body?.suggestions?.[0]) {
-        throw new Error(body?.message ?? "AI rewrite failed");
+        throw new Error(body?.message ?? t.aiRewriteFailed);
       }
 
       setCaption(body.suggestions[0]);
-      toast.success("AI rewrite added");
+      toast.success(t.aiRewriteAdded);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "AI rewrite failed");
+      toast.error(error instanceof Error ? error.message : t.aiRewriteFailed);
     } finally {
       setBusy("");
     }
@@ -250,7 +256,7 @@ export default function Create({ postId }: CreateProps = {}) {
   };
 
   const addLink = () => {
-    const value = window.prompt("Paste a URL to add to this post");
+    const value = window.prompt(t.linkPrompt);
     if (!value) return;
     appendToCaption(value.trim());
   };
@@ -262,7 +268,7 @@ export default function Create({ postId }: CreateProps = {}) {
         method: "POST",
         headers: await getClientAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
-          prompt: `${suggestion}. Return one ready-to-use caption fragment only.`,
+          prompt: t.suggestionPrompt(suggestion),
           caption,
         }),
       });
@@ -272,13 +278,13 @@ export default function Create({ postId }: CreateProps = {}) {
       } | null;
 
       if (!response.ok || !body?.suggestions?.[0]) {
-        throw new Error(body?.message ?? "AI suggestion failed");
+        throw new Error(body?.message ?? t.suggestionFailed);
       }
 
       appendToCaption(body.suggestions[0]);
-      toast.success("Suggestion added");
+      toast.success(t.suggestionAdded);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "AI suggestion failed");
+      toast.error(error instanceof Error ? error.message : t.suggestionFailed);
     } finally {
       setBusy("");
     }
@@ -317,33 +323,33 @@ export default function Create({ postId }: CreateProps = {}) {
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight">
-            {postId ? "Edit post" : "Compose post"}
+            {postId ? t.editTitle : t.title}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Write once, preview everywhere. <span className="text-success">{autosave}</span>
+            {t.subtitle("")} <span className="text-success">{autosave === "saving" ? t.saving : t.saved}</span>
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <ButtonWithBadge onClick={() => void persist("Draft")} variant="outline" disabled={Boolean(busy)}>
-            <Save className="h-4 w-4" /> Save draft
+            <Save className="h-4 w-4" /> {t.saveDraft}
           </ButtonWithBadge>
           <ButtonWithBadge
             onClick={() => void persist("Scheduled")}
             variant="outline"
-            badge="Ready"
+            badge={t.ready}
             badgeVariant="success"
             disabled={Boolean(busy)}
           >
-            <Calendar className="h-4 w-4" /> Schedule
+            <Calendar className="h-4 w-4" /> {t.schedule}
           </ButtonWithBadge>
           <ButtonWithBadge
             onClick={() => void persist("Draft", true)}
             variant="primary"
-            badge={`${selected.length} ch`}
+            badge={t.selectedBadge(selected.length)}
             badgeVariant="ai"
             disabled={Boolean(busy) || !selected.length}
           >
-            <Send className="h-4 w-4" /> Publish now
+            <Send className="h-4 w-4" /> {common.publishNow}
           </ButtonWithBadge>
         </div>
       </div>
@@ -352,7 +358,7 @@ export default function Create({ postId }: CreateProps = {}) {
         <div className="lg:col-span-3 space-y-4">
           <div className="glass rounded-2xl p-5">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-              Channels
+              {common.channels}
             </div>
             <div className="flex flex-wrap gap-2">
               {destinations.map((destination) => {
@@ -378,7 +384,7 @@ export default function Create({ postId }: CreateProps = {}) {
                 );
               })}
               {!destinations.length ? (
-                <span className="text-xs text-muted-foreground">Connect a channel to publish.</span>
+                <span className="text-xs text-muted-foreground">{t.noChannelToPublish}</span>
               ) : null}
             </div>
           </div>
@@ -389,13 +395,13 @@ export default function Create({ postId }: CreateProps = {}) {
               onChange={(event) => setCaption(event.target.value)}
               rows={8}
               className="w-full resize-none bg-transparent text-[15px] leading-relaxed placeholder:text-muted-foreground focus:outline-none"
-              placeholder="What's happening?"
+              placeholder={t.composerPlaceholder}
             />
             <div className="mt-3 flex items-center gap-1 text-muted-foreground">
-              <ToolButton icon={ImageIcon} label="Media" onClick={() => inputRef.current?.click()} />
-              <ToolButton icon={Hash} label="Hashtags" onClick={() => appendToCaption("#socialmedia #content #growth")} />
-              <ToolButton icon={Link2} label="Link" onClick={addLink} />
-              <ToolButton icon={Smile} label="Emoji" onClick={() => setCaption((current) => `${current} ✨`)} />
+              <ToolButton icon={ImageIcon} label={t.toolMedia} onClick={() => inputRef.current?.click()} />
+              <ToolButton icon={Hash} label={t.toolHashtags} onClick={() => appendToCaption("#socialmedia #content #growth")} />
+              <ToolButton icon={Link2} label={t.toolLink} onClick={addLink} />
+              <ToolButton icon={Smile} label={t.toolEmoji} onClick={() => setCaption((current) => `${current} ✨`)} />
               <div className="ml-auto flex items-center gap-3 text-[11px]">
                 <span className={overLimit ? "text-destructive font-semibold" : ""}>
                   {caption.length}/{charLimit}
@@ -404,7 +410,7 @@ export default function Create({ postId }: CreateProps = {}) {
                   onClick={() => void rewrite()}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-accent/15 px-2.5 py-1.5 text-accent font-semibold hover:bg-accent/25 transition"
                 >
-                  <Sparkles className="h-3.5 w-3.5" /> AI rewrite
+                  <Sparkles className="h-3.5 w-3.5" /> {t.aiRewrite}
                 </button>
               </div>
             </div>
@@ -418,7 +424,7 @@ export default function Create({ postId }: CreateProps = {}) {
 
           <div className="glass rounded-2xl p-5">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-              Media
+              {t.media}
             </div>
             <div className="grid grid-cols-4 gap-3">
               {media.map((asset) => (
@@ -434,7 +440,7 @@ export default function Create({ postId }: CreateProps = {}) {
               >
                 <div className="text-center">
                   <ImageIcon className="mx-auto h-5 w-5" />
-                  <div className="mt-1 text-[10px]">{busy === "upload" ? "Uploading..." : "Upload"}</div>
+                  <div className="mt-1 text-[10px]">{busy === "upload" ? common.uploading : common.upload}</div>
                 </div>
               </button>
             </div>
@@ -442,10 +448,10 @@ export default function Create({ postId }: CreateProps = {}) {
 
           <div className="rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/10 to-card p-5">
             <div className="flex items-center gap-2 text-accent text-xs font-bold uppercase tracking-wider">
-              <Sparkles className="h-4 w-4" /> AI suggestions
+              <Sparkles className="h-4 w-4" /> {t.aiSuggestions}
             </div>
             <div className="mt-3 grid gap-2">
-              {["Make it shorter & punchier", "Add a question hook", "Generate a strong CTA", "Generate 10 hashtags"].map(
+              {t.suggestions.map(
                 (suggestion) => (
                   <button
                     key={suggestion}
@@ -464,9 +470,9 @@ export default function Create({ postId }: CreateProps = {}) {
             <div className="rounded-2xl border border-warning/30 bg-warning/5 p-4 flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
               <div className="text-sm">
-                <div className="font-semibold text-warning">Connect a channel first</div>
+                <div className="font-semibold text-warning">{t.connectFirstTitle}</div>
                 <div className="text-muted-foreground text-xs mt-0.5">
-                  Publishing actions become available after OAuth connection.
+                  {t.connectFirstBody}
                 </div>
               </div>
             </div>
@@ -492,12 +498,12 @@ export default function Create({ postId }: CreateProps = {}) {
                   }`}
                 >
                   <PlatformBadge platform={platform} size="xs" />
-                  <span className="hidden md:inline">{platformMeta[platform].name}</span>
+                  <span className="hidden md:inline">{getPlatformName(platform, locale)}</span>
                 </button>
               ))
             ) : (
               <div className="w-full rounded-lg px-3 py-2 text-center text-xs text-muted-foreground">
-                Select a connected channel to preview.
+                {t.previewEmpty}
               </div>
             )}
           </div>
@@ -510,7 +516,7 @@ export default function Create({ postId }: CreateProps = {}) {
               className="glass-strong rounded-2xl p-4"
             >
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
-                Live preview
+                {t.livePreview}
               </div>
               <div className="rounded-xl bg-background border border-border overflow-hidden">
                 <div className="flex items-center gap-2 p-3 border-b border-border">
@@ -518,8 +524,8 @@ export default function Create({ postId }: CreateProps = {}) {
                   <div>
                     <div className="text-sm font-semibold">{activePreviewName}</div>
                     <div className="text-[10px] text-muted-foreground">
-                      {platformMeta[activePreviewPlatform].name}
-                      {activePreviewDestinations.length > 1 ? ` - ${activePreviewDestinations.length} destinations` : ""}
+                      {getPlatformName(activePreviewPlatform, locale)}
+                      {activePreviewDestinations.length > 1 ? ` - ${t.destinationCount(activePreviewDestinations.length)}` : ""}
                     </div>
                   </div>
                 </div>
@@ -543,7 +549,7 @@ export default function Create({ postId }: CreateProps = {}) {
             </motion.div>
           ) : (
             <div className="glass-strong rounded-2xl p-8 text-center text-sm text-muted-foreground">
-              No selected publishing destination.
+              {t.noDestination}
             </div>
           )}
         </div>
